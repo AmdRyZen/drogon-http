@@ -1,7 +1,6 @@
 #include <fstream>
 #include <filesystem>
 #include "api_v1_User.h"
-#include "stdio.h"
 #include "utils/redisUtils.h"
 
 using namespace api::v1;
@@ -11,15 +10,26 @@ void User::login(const HttpRequestPtr &req,
                  std::function<void(const HttpResponsePtr &)> &&callback,
                  std::string &&userId,
                  const std::string &password) {
-    LOG_INFO << "userId= " << userId << " login";
-    auto json = req->getJsonObject();
-    LOG_INFO << "auto json = req.getJsonObject();= " << (*json)["name"].asString() << " ";
-    // ...
     Json::Value data;
-    data["msg"] = "ok";
-    data["name"] = (*json)["name"].asString();
-    data["token"] = drogon::utils::getUuid();
-    callback(HttpResponse::newHttpJsonResponse(data));
+    try {
+      if (req->getJsonObject() == nullptr || req->getJsonObject()->empty()) {
+        data["msg"] = "json is empty";
+        return callback(HttpResponse::newHttpJsonResponse(data));
+      }
+
+      LOG_INFO << "userId= " << userId << " login";
+      auto json = req->getJsonObject();
+      LOG_INFO << "auto json = req.getJsonObject();= " << (*json)["name"].asString() << " ";
+      // ...
+
+      data["msg"] = "ok";
+      data["name"] = (*json)["name"].asString();
+      data["token"] = drogon::utils::getUuid();
+      return callback(HttpResponse::newHttpJsonResponse(data));
+    } catch (...) {
+      data["msg"] = "error";
+      return callback(HttpResponse::newHttpJsonResponse(data));
+    }
 }
 
 Task<> User::getInfo(const HttpRequestPtr req,
