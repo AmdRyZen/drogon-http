@@ -215,7 +215,7 @@
         //handle_sig_term: True by default
         "handle_sig_term": true,
         //relaunch_on_error: False by default, if true, the program will be restart by the parent after exiting;
-        "relaunch_on_error": true,
+        "relaunch_on_error": false,
         //use_sendfile: True by default, if true, the program
         //uses sendfile() system-call to send static files to clients;
         "use_sendfile": true,
@@ -331,7 +331,7 @@
             "passwd": "",
             //is_fast: false by default, if it is true, the client is faster but user can't call
             //any synchronous interface of it.
-            "is_fast": false,
+            "is_fast": true,
             //client_encoding: The character set used by the client. it is empty string by default which
             //means use the default character set.
             //"client_encoding": "",
@@ -357,7 +357,7 @@
             "db": 0,
             //is_fast: false by default, if it is true, the client is faster but user can't call
             //any synchronous interface of it.
-            "is_fast": false,
+            "is_fast": true,
             //number_of_connections: 1 by default, if the 'is_fast' is true, the number is the number of
             //connections per IO thread, otherwise it is the total number of all connections.
             "number_of_connections": 1,

@@ -38,7 +38,7 @@ Task<> User::getInfo(const HttpRequestPtr req,
                    const std::string token) {
     LOG_INFO << "User " << userId << " get his information";
 
-    auto clientPtr = drogon::app().getDbClient();
+    auto clientPtr = drogon::app().getFastDbClient();
 
     struct Data : public Json::Value {
         Json::Value data;
