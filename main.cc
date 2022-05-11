@@ -101,6 +101,20 @@ int main() {
     trieService.loadFromFile(word_path);
     trieService.loadStopWordFromFile(stopped_path);
 
+    drogon::app().registerPreRoutingAdvice([](const drogon::HttpRequestPtr &req,
+                                      drogon::AdviceCallback &&acb,
+                                      drogon::AdviceChainCallback &&accb) {
+      LOG_DEBUG << "preRouting1";
+      std::cout << "preRouting1!" << std::endl;
+      accb();
+    });
+
+    drogon::app().registerBeginningAdvice(
+        []() {
+          LOG_DEBUG << "Event loop is running!";
+          std::cout << "Event loop is running!" << std::endl;
+        });
+
     drogon::app().loadConfigFile("config.json");
     drogon::app().run();
     return 0;
