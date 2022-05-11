@@ -16,6 +16,7 @@ namespace api
                 METHOD_ADD(User::getInfo, "/{1}/getInfo?token={2}", Get);
                 METHOD_ADD(User::getBanWord, "/getBanWord?word={1}", Get);
                 METHOD_ADD(User::serdeJson, "/serdeJson", Get);
+                METHOD_ADD(User::quit, "/quit", Get);
             //use METHOD_ADD to add your custom processing function here;
             //METHOD_ADD(User::get,"/{2}/{1}",Get);//path is /api/v1/User/{arg2}/{arg1}
             //METHOD_ADD(User::your_method_name,"/{1}/{2}/list",Get);//path is /api/v1/User/{arg1}/{arg2}/list
@@ -45,6 +46,8 @@ namespace api
             // your declaration of processing function maybe like this:
             // void get(const HttpRequestPtr& req,std::function<void (const HttpResponsePtr &)> &&callback,int p1,std::string p2);
             // void your_method_name(const HttpRequestPtr& req,std::function<void (const HttpResponsePtr &)> &&callback,double p1,int p2) const;
+            void quit(const HttpRequestPtr &req,
+                      std::function<void(const HttpResponsePtr &)> &&callback);
         };
     }
 }

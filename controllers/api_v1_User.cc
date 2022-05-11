@@ -164,3 +164,10 @@ void User::serdeJson(const HttpRequestPtr &req, std::function<void(const HttpRes
     data["code"] = 200;
     callback(HttpResponse::newHttpJsonResponse(data));
 }
+
+void User::quit(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
+  drogon::app().quit();
+  auto data = HttpResponse::newHttpResponse();
+  data->setStatusCode(HttpStatusCode::k204NoContent);
+  callback(data);
+}
