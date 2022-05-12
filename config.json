@@ -100,7 +100,7 @@
     "app": {
         //number_of_threads: The number of IO threads, 1 by default, if the value is set to 0, the number of threads
         //is the number of CPU cores
-        "number_of_threads": 12,
+        "number_of_threads": 16,
         //enable_session: False by default
         "enable_session": false,
         "session_timeout": 0,
@@ -169,7 +169,7 @@
             }
         ],
         //max_connections: maximum number of connections, 100000 by default
-        "max_connections": 100000,
+        "max_connections": 1000000,
         //max_connections_per_ip: maximum number of connections per clinet, 0 by default which means no limit
         "max_connections_per_ip": 0,
         //Load_dynamic_views: False by default, when set to true, drogon
@@ -337,7 +337,7 @@
             //"client_encoding": "",
             //number_of_connections: 1 by default, if the 'is_fast' is true, the number is the number of
             //connections per IO thread, otherwise it is the total number of all connections.
-            "number_of_connections": 1,
+            "number_of_connections": 3,
             //timeout: -1.0 by default, in seconds, the timeout for executing a SQL query.
             //zero or negative value means no timeout.
             "timeout": -1.0
@@ -360,7 +360,7 @@
             "is_fast": true,
             //number_of_connections: 1 by default, if the 'is_fast' is true, the number is the number of
             //connections per IO thread, otherwise it is the total number of all connections.
-            "number_of_connections": 1,
+            "number_of_connections": 3,
             //timeout: -1.0 by default, in seconds, the timeout for executing a command.
             //zero or negative value means no timeout.
             "timeout": -1.0
