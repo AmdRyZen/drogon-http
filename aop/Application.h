@@ -91,7 +91,7 @@ public:
   virtual void initialization();
 };
 
-inline Application::Application(){
+inline Application::Application() {
   drogon::app().registerBeginningAdvice(
       []() {
         std::cout << drogon << std::endl;
