@@ -69,7 +69,7 @@ void OpenApi::curlPost(const HttpRequestPtr &req, std::function<void(const HttpR
     Json::Value data;
     data["msg"] = "ok";
     data["code"] = 200;
-    callback(HttpResponse::newHttpJsonResponse(data));
+    callback(HttpResponse::newHttpJsonResponse(std::move(data)));
 }
 
 Task<> OpenApi::getValue(const HttpRequestPtr req,
@@ -82,5 +82,5 @@ Task<> OpenApi::getValue(const HttpRequestPtr req,
   ret["msg"] = "ok";
   ret["code"] = 200;
   ret["redis_value"] = redis_value;
-  co_return callback(HttpResponse::newHttpJsonResponse(ret));
+  co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
 }

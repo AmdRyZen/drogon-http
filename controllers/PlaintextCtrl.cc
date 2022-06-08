@@ -1,5 +1,5 @@
-#include "TestCtrl.h"
-void TestCtrl::asyncHandleHttpRequest(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback)
+#include "PlaintextCtrl.h"
+void PlaintextCtrl::asyncHandleHttpRequest(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback)
 {
     //write your application logic here
     //write your application logic here
@@ -7,5 +7,5 @@ void TestCtrl::asyncHandleHttpRequest(const HttpRequestPtr& req, std::function<v
     resp->setStatusCode(k200OK);
     resp->setContentTypeCode(CT_TEXT_HTML);
     resp->setBody("Hello World!");
-    callback(resp);
+    callback(std::move(resp));
 }

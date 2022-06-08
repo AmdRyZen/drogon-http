@@ -1,7 +1,7 @@
 #pragma once
 #include <drogon/HttpSimpleController.h>
 using namespace drogon;
-class TestCtrl:public drogon::HttpSimpleController<TestCtrl>
+class PlaintextCtrl :public drogon::HttpSimpleController<PlaintextCtrl>
 {
   public:
     virtual void asyncHandleHttpRequest(const HttpRequestPtr &req, std::function<void (const HttpResponsePtr &)> &&callback)override;

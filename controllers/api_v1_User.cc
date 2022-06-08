@@ -14,7 +14,7 @@ void User::login(const HttpRequestPtr &req,
     try {
       if (req->getJsonObject() == nullptr || req->getJsonObject()->empty()) {
         data["msg"] = "json is empty";
-        return callback(HttpResponse::newHttpJsonResponse(data));
+        return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
       }
 
       LOG_INFO << "userId= " << userId << " login";
@@ -25,10 +25,10 @@ void User::login(const HttpRequestPtr &req,
       data["msg"] = "ok";
       data["name"] = (*json)["name"].asString();
       data["token"] = drogon::utils::getUuid();
-      return callback(HttpResponse::newHttpJsonResponse(data));
+      return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
     } catch (...) {
       data["msg"] = "error";
-      return callback(HttpResponse::newHttpJsonResponse(data));
+      return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
     }
 }
 
@@ -78,7 +78,7 @@ Task<> User::getInfo(const HttpRequestPtr req,
     ret["num_users"] = __data.num_users;
     ret["data"] = __data.data;
     __data.clear();
-    co_return callback(HttpResponse::newHttpJsonResponse(ret));
+    co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
 }
 
 void User::getBanWord(const HttpRequestPtr &req,
@@ -124,7 +124,7 @@ void User::getBanWord(const HttpRequestPtr &req,
     data["msg"] = "ok";
     data["code"] = 200;
     data["banWord"] = SbcConvertService::ws2s(trieService.replaceSensitive(SbcConvertService::s2ws(word)));
-    callback(HttpResponse::newHttpJsonResponse(data));
+    callback(HttpResponse::newHttpJsonResponse(std::move(data)));
 }
 
 void User::serdeJson(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
@@ -162,12 +162,12 @@ void User::serdeJson(const HttpRequestPtr &req, std::function<void(const HttpRes
     Json::Value data;
     data["msg"] = "ok";
     data["code"] = 200;
-    callback(HttpResponse::newHttpJsonResponse(data));
+    callback(HttpResponse::newHttpJsonResponse(std::move(data)));
 }
 
 void User::quit(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
   drogon::app().quit();
   auto data = HttpResponse::newHttpResponse();
   data->setStatusCode(HttpStatusCode::k204NoContent);
-  callback(data);
+  callback(std::move(data));
 }

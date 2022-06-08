@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
-SET(CMAKE_C_COMPILER "/usr/local/Cellar/gcc/11.3.0/bin/gcc-11")
-SET(CMAKE_CXX_COMPILER "/usr/local/Cellar/gcc/11.3.0/bin/g++-11")
+SET(CMAKE_C_COMPILER "/usr/local/bin/gcc-11")
+SET(CMAKE_CXX_COMPILER "/usr/local/bin/g++-11")
 
 project(drogon-http C CXX)
 
@@ -31,17 +31,17 @@ if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -O0")
     message("Debug mode:${CMAKE_CXX_FLAGS_DEBUG}")
 elseif(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Ofast -march=native -flto")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -w -Ofast -march=native -flto")
     message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
 else()
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Ofast -march=native -flto")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -w -Ofast -march=native -flto")
     message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
     message("CMAKE_BUILD_TYPE:${CMAKE_BUILD_TYPE}")
 endif()
 
 add_executable(
     ${PROJECT_NAME} main.cc
-    controllers/TestCtrl.cc controllers/TestCtrl.h
+        controllers/PlaintextCtrl.cc controllers/PlaintextCtrl.h
     controllers/api_v1_User.cc controllers/api_v1_User.h
     controllers/api_v1_OpenApi.cc controllers/api_v1_OpenApi.h
     utils/redisUtils.h utils/redisUtils.cpp
@@ -59,6 +59,7 @@ add_executable(
 #
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
+find_package(mimalloc 1.7.6 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon)
 
 # ##############################################################################
@@ -101,4 +102,4 @@ target_sources(${PROJECT_NAME}
 
 # ##############################################################################
 
-add_subdirectory(test)
+#add_subdirectory(test)
