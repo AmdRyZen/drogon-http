@@ -1,6 +1,7 @@
 #include "EchoWebsocket.h"
-#include "utils/redisUtils.h"
 #include "drogon/Session.h"
+#include "user.pb.h"
+#include "utils/redisUtils.h"
 
 struct Subscriber {
     std::string chatRoomName_;
@@ -45,7 +46,12 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                     std::string data = co_await redisUtils::getCoroRedisValue(command.str());
                     std::cout << "data: " << data << std::endl;
                     auto &s = wsConnPtr->getContextRef<Subscriber>();
-                    chatRooms_.publish(s.chatRoomName_, std::to_string(s.id_));
+                    dto::UserData userData;
+                    userData.set_id(100);
+                    userData.set_name("hello wocao");
+                    std::string buff{};
+                    userData.SerializeToString(&buff);
+                    chatRooms_.publish(s.chatRoomName_, "ID= " + std::to_string(s.id_) + " buff " + buff);
                     co_return;
                 });
             }

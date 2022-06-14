@@ -1,7 +1,7 @@
-#include <fstream>
-#include <filesystem>
 #include "api_v1_User.h"
 #include "utils/redisUtils.h"
+#include <filesystem>
+#include <fstream>
 
 using namespace api::v1;
 

@@ -13,8 +13,8 @@ class OpenApi : public drogon::HttpController<OpenApi>
   public:
     METHOD_LIST_BEGIN
         METHOD_ADD(OpenApi::curlPost, "/curl", Get);
-
         METHOD_ADD(OpenApi::getValue, "/getValue", Get);
+        METHOD_ADD(OpenApi::getProtobuf, "/getProtobuf", Get);
     // use METHOD_ADD to add your custom processing function here;
     // METHOD_ADD(OpenApi::get, "/{2}/{1}", Get); // path is /api/v1/OpenApi/{arg2}/{arg1}
     // METHOD_ADD(OpenApi::your_method_name, "/{1}/{2}/list", Get); // path is /api/v1/OpenApi/{arg1}/{arg2}/list
@@ -32,6 +32,8 @@ class OpenApi : public drogon::HttpController<OpenApi>
     Task<> getValue(const HttpRequestPtr req,
                    std::function<void (const HttpResponsePtr &)> callback
     );
+    Task<> getProtobuf(const HttpRequestPtr req,
+                       std::function<void(const HttpResponsePtr &)> callback);
 };
 }
 }

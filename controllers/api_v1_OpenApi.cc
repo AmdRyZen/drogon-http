@@ -4,6 +4,7 @@
 #include "utils/md5Utils.h"
 #include "utils/redisUtils.h"
 #include <drogon/HttpClient.h>
+#include "user.pb.h"
 
 using namespace api::v1;
 using namespace drogon;
@@ -84,3 +85,30 @@ Task<> OpenApi::getValue(const HttpRequestPtr req,
   ret["redis_value"] = redis_value;
   co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
 }
+
+Task<> OpenApi::getProtobuf(const HttpRequestPtr req,
+                         std::function<void(const HttpResponsePtr &)> callback) {
+  //GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  dto::UserData userData;
+  userData.set_id(100);
+  userData.set_name("hello wocao");
+
+  std::string buff{};
+  userData.SerializeToString(&buff);
+  //------------------解析----------------------
+  dto::UserData rsp2{};
+  if (!rsp2.ParseFromString(buff)) {
+    std::cout << "parse error\n";
+  }
+
+  auto name = rsp2.name();
+  std::cout << "name:" << name << std::endl;
+
+  Json::Value ret;
+  ret["msg"] = "ok";
+  ret["code"] = 200;
+  ret["name"] = name;
+  co_return callback(HttpResponse::newHttpJsonResponse(std::move(buff)));
+}
+

@@ -28,20 +28,35 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 条件判断
 if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -O0")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -O0 -L/usr/local/lib")
     message("Debug mode:${CMAKE_CXX_FLAGS_DEBUG}")
 elseif(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -w -Ofast -march=native -flto")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -w -Ofast -march=native -flto -L/usr/local/lib")
     message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
 else()
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -w -Ofast -march=native -flto")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -w -Ofast -march=native -flto -L/usr/local/lib")
     message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
     message("CMAKE_BUILD_TYPE:${CMAKE_BUILD_TYPE}")
 endif()
 
+#find_package(Threads REQUIRED)
+#find_package(PkgConfig REQUIRED)
+# Find required protobuf package
+find_package(Protobuf REQUIRED)
+if(PROTOBUF_FOUND)
+    message(STATUS "protobuf library found")
+else()
+    message(FATAL_ERROR "protobuf library is needed but cant be found")
+endif()
+include_directories(${Protobuf_INCLUDE_DIRS})
+
+add_subdirectory(proto)
+#include_directories(${PROTO_GEN_C_INCLUDE_DIRS}) # c
+include_directories(${PROTO_GEN_CXX_INCLUDE_DIRS}) # cpp
+
 add_executable(
     ${PROJECT_NAME} main.cc
-        controllers/PlaintextCtrl.cc controllers/PlaintextCtrl.h
+    controllers/PlaintextCtrl.cc controllers/PlaintextCtrl.h
     controllers/api_v1_User.cc controllers/api_v1_User.h
     controllers/api_v1_OpenApi.cc controllers/api_v1_OpenApi.h
     utils/redisUtils.h utils/redisUtils.cpp
@@ -60,7 +75,7 @@ add_executable(
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
 find_package(mimalloc 1.7.6 REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon)
+target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon proto_gen_cxx)
 
 # ##############################################################################
 
