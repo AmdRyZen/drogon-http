@@ -3,11 +3,14 @@
 //
 
 #include "service/TrieService.h"
+#include "threadPool/threadPool.h"
+#include <drogon/drogon.h>
 #include <filesystem>
 #include <iostream>
-#include <drogon/drogon.h>
 
 TrieService trieService;
+
+ThreadPool pool(4);
 
 namespace App
 {

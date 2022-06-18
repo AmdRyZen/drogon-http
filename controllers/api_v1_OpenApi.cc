@@ -1,10 +1,11 @@
 #include "api_v1_OpenApi.h"
 #include "service/SbcConvertService.h"
+#include "threadPool/threadPool.h"
+#include "user.pb.h"
 #include "utils/cipherUtils.h"
 #include "utils/md5Utils.h"
 #include "utils/redisUtils.h"
 #include <drogon/HttpClient.h>
-#include "user.pb.h"
 
 using namespace api::v1;
 using namespace drogon;
@@ -112,3 +113,39 @@ Task<> OpenApi::getProtobuf(const HttpRequestPtr req,
   co_return callback(HttpResponse::newHttpJsonResponse(std::move(buff)));
 }
 
+
+std::atomic<int64_t> value(0);
+inline void threadF() {
+  for (int i = 0; i < 100; ++i) {
+    value++;
+  }
+}
+
+int64_t value1 = 0;
+std::mutex mtx;
+inline void threadF1() {
+  for (int i = 0; i < 100; ++i) {
+    std::lock_guard<std::mutex> lk(mtx);
+    // 当前线程休眠1毫秒
+    //std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    value1++;
+  }
+}
+
+Task<> OpenApi::threadPool(const HttpRequestPtr req,
+                    std::function<void(const HttpResponsePtr &)> callback) {
+  auto result = pool.enqueue([] {
+        threadF();
+        threadF1();
+      });
+  auto result1 = pool.enqueue([] {
+        threadF();
+        threadF1();
+      });
+  result.wait();
+  result1.wait();
+  std::cout << "value = " << value << std::endl;
+  std::cout << "value1 = " << value1 << std::endl;
+
+  co_return callback(HttpResponse::newHttpJsonResponse(std::move("")));
+}
