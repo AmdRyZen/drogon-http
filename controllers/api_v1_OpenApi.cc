@@ -6,6 +6,7 @@
 #include "utils/md5Utils.h"
 #include "utils/redisUtils.h"
 #include <drogon/HttpClient.h>
+#include <taskflow/taskflow.hpp>  // Taskflow is header-only
 
 using namespace api::v1;
 using namespace drogon;
@@ -146,6 +147,36 @@ Task<> OpenApi::threadPool(const HttpRequestPtr req,
   result1.wait();
   std::cout << "value = " << value << std::endl;
   std::cout << "value1 = " << value1 << std::endl;
+
+
+  // taskflow.github.io
+  tf::Executor executor;
+  tf::Taskflow taskflow;
+
+  // create asynchronous tasks directly from an executor
+  tf::Future<std::optional<int>> future = executor.async([](){
+    std::cout << "async task returns 1" << std::endl;
+    return 1;
+  });
+  executor.silent_async([](){ std::cout << "async task of no return" << std::endl; });
+
+  // launch an asynchronous task from a running task
+  taskflow.emplace([&](){
+    executor.async([](){ std::cout << "async task within a task" << std::endl; });
+  });
+
+  executor.run(taskflow).wait();
+
+
+  double foo = 0.0;
+  double bar = 1.0;
+  auto res = foo <=> bar;
+  if (res < 0)
+    std::cout << "foo 小于 bar" << std::endl;
+  else if (res > 0)
+    std::cout << "foo 大于 bar" << std::endl;
+  else // (res == 0)
+    std::cout << "foo 与 bar 相等" << std::endl;
 
   co_return callback(HttpResponse::newHttpJsonResponse(std::move("")));
 }
