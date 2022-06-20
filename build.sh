@@ -23,11 +23,11 @@ function build_drogon() {
 
     echo "Start building ..."
     if [ $1 -eq 1 ]; then
-        cmake .. -DCMAKE_BUILD_TYPE=debug $cmake_gen
+        cmake .. -DCMAKE_BUILD_TYPE=Debug $cmake_gen
     elif [ $1 -eq 2 ]; then
-        cmake .. -DCMAKE_BUILD_TYPE=debug -DBUILD_DROGON_SHARED=ON -DCMAKE_CXX_VISIBILITY_PRESET=hidden -DCMAKE_VISIBILITY_INLINES_HIDDEN=1 $cmake_gen
+        cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_DROGON_SHARED=ON -DCMAKE_CXX_VISIBILITY_PRESET=hidden -DCMAKE_VISIBILITY_INLINES_HIDDEN=1 $cmake_gen
     else
-        cmake .. -DCMAKE_BUILD_TYPE=release $cmake_gen
+        cmake .. -DCMAKE_BUILD_TYPE=Release $cmake_gen
     fi
 
     #If errors then exit
