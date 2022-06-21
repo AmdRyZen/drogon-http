@@ -49,7 +49,19 @@ Task<> User::getInfo(const HttpRequestPtr req,
     } __data;
 
     try {
-        co_await clientPtr->execSqlCoro("update f_user set username = ? where id = ? limit 1", "xxxix", 2);
+        //co_await clientPtr->execSqlCoro("update f_user set username = ? where id = ? limit 1", "xxxix", 2);
+        auto transPtr = co_await clientPtr->newTransactionCoro();
+        try
+        {
+          co_await transPtr->execSqlCoro("update f_user set username = ? where id = ? limit 1", "aa", 2);
+          co_await transPtr->execSqlCoro("update f_user set username = ? where id = ? limit 1", "bb", 4);
+          //throw std::runtime_error("hahaha");
+        }
+        catch(const std::exception& e)
+        {
+          transPtr->rollback();
+          LOG_ERROR << "update failed: " << e.what();
+        }
         auto result = co_await clientPtr->execSqlCoro("select * from f_user where username != ? order by id asc limit 10 ", "薯条三兄弟");
         auto count = co_await clientPtr->execSqlCoro("select count(1) from f_user where username != ?", "薯条三兄弟");
         std::for_each(result.begin(), result.end(), [&](const auto& row){
