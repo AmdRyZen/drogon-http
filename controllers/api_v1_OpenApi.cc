@@ -127,6 +127,9 @@ std::mutex mtx;
 inline void threadF1() {
   for (int i = 0; i < 100; ++i) {
     std::lock_guard<std::mutex> lk(mtx);
+    thread_local int count = 0;
+    ++count;
+    std::cout << "count: " << count << std::endl;
     // 当前线程休眠1毫秒
     //std::this_thread::sleep_for(std::chrono::milliseconds(1));
     value1++;
@@ -191,4 +194,97 @@ Task<> OpenApi::threadPool(const HttpRequestPtr req,
     std::cout << "foo 与 bar 相等" << std::endl;
 
   co_return callback(HttpResponse::newHttpJsonResponse(std::move(future_ret)));
+}
+
+Task<> OpenApi::fix(const HttpRequestPtr req,
+                    std::function<void(const HttpResponsePtr &)> callback) {
+  // mysqlbinlog --no-defaults --base64-output=decode-rows -v ./mysql-bin.000131 --result-file=./2.sql
+
+  auto clientPtr = drogon::app().getFastDbClient();
+
+  struct Data : public Json::Value {
+    Json::Value data;
+    Json::Value item;
+    Data() : data() {}
+  } __data;
+
+  static std::aligned_storage<sizeof(Data),alignof(Data)>::type data;
+  Data *attr = new (&data) Data;
+  attr->data["data"] = "aligned_storage";
+  std::cout << attr->data << std::endl;
+  std::cout << "attr = " << sizeof(attr) << std::endl;
+  std::cout << "__data = " << sizeof(__data) << std::endl;
+
+  auto lhaving = co_await clientPtr->execSqlCoro("select user_id from currency_gamecoin_log where  original_number != 0 and op_number != 0  group by user_id having count(1) > 1 order by create_time");
+  for (std::size_t n = 0; n < lhaving.size(); ++n) {
+    auto userId =  lhaving[n]["user_id"].template as<std::int32_t>();
+
+    // ....
+    auto result = co_await clientPtr->execSqlCoro("select * from currency_gamecoin_log where original_number != 0 and op_number != 0 and user_id = ? order by create_time desc", userId);
+
+    for (std::size_t i = 0; i < result.size(); ++i) {
+      auto original_number = result[i]["original_number"].template as<std::int32_t>();
+      auto op_number = result[i]["op_number"].template as<std::int32_t>();
+
+      int32_t next_original_number = 0;
+      if (i < result.size() - 1) {
+        next_original_number = result[i+1]["original_number"].template as<std::int32_t>();
+      }
+
+      if ((original_number + op_number) !=  next_original_number && next_original_number != 0) {
+        __data.item["record_id"] = result[i]["record_id"].template as<std::int32_t>();
+        __data.item["user_id"] = result[i]["user_id"].template as<std::int32_t>();
+        __data.item["original_number"] = result[i]["original_number"].template as<std::int32_t>();
+        __data.item["op_number"] = result[i]["op_number"].template as<std::int32_t>();
+        __data.item["next_original_number"] = next_original_number;
+        __data.item["diff"] = original_number + op_number - next_original_number;
+
+        __data.data.append(__data.item);
+        __data.item.clear();
+      }
+    }
+  }
+
+  std::cout << "size  = " <<   __data.data.size() << std::endl;
+
+  Json::Value ret;
+  ret["msg"] = "ok";
+  ret["data"] = __data.data;
+
+  co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
+}
+
+Task<> OpenApi::random(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback) {
+
+  std::default_random_engine random(time(nullptr));
+
+  std::uniform_int_distribution<int> int_dis(0, 100); // 整数均匀分布
+  std::uniform_real_distribution<float> real_dis(0.0, 1.0); // 浮点数均匀分布
+
+
+  std::vector<int32_t> value;
+  for (int i = 0; i < 10; ++i) {
+    auto inta = int_dis(random);
+    value.push_back(inta);
+    std::cout << inta << ' ';
+  }
+  std::cout << std::endl;
+
+  for (int i = 0; i < 10; ++i) {
+    std::cout << real_dis(random) << ' ';
+  }
+  std::cout << std::endl;
+
+  auto result = std::minmax_element(value.begin(), value.end());
+  std::cout << "min element at: " << *(result.first) << std::endl;
+  std::cout << "max element at: " << *(result.second) << std::endl;
+  std::sort(value.begin(), value.end());
+  std::for_each(value.begin(), value.end(), [&](const auto& item) {
+    std::cout << item << std::endl;
+  });
+  value.clear();
+
+  Json::Value ret;
+  ret["msg"] = "ok";
+  co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
 }

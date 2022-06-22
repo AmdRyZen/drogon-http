@@ -4,9 +4,7 @@
 
 extern TrieService trieService;
 using namespace drogon;
-namespace api
-{
-    namespace v1
+namespace api::v1
     {
         class User : public drogon::HttpController<User>
         {
@@ -50,4 +48,3 @@ namespace api
                       std::function<void(const HttpResponsePtr &)> &&callback);
         };
     }
-}
