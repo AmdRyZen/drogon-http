@@ -1,4 +1,7 @@
 #include "api_v1_User.h"
+#include "jwt-cpp/base.h"
+#include "jwt-cpp/jwt.h"
+#include "utils/checkloginUtils.h"
 #include "utils/redisUtils.h"
 #include <filesystem>
 #include <fstream>
@@ -22,12 +25,32 @@ void User::login(const HttpRequestPtr &req,
       LOG_INFO << "auto json = req.getJsonObject();= " << (*json)["name"].asString() << " ";
       // ...
 
+      auto token = jwt::create()
+                       .set_issuer("auth0")
+                       .set_type("JWS")
+                       .set_payload_claim("user_id", jwt::claim(std::string("123456")))
+                       .set_payload_claim("name", jwt::claim(std::string("xxxxx")))
+                       .set_expires_at(std::chrono::system_clock::now() + std::chrono::seconds{drogon::app().getCustomConfig()["jwt-sessionTime"].asInt()})
+                       .sign(jwt::algorithm::hs256{drogon::app().getCustomConfig()["jwt-secret"].asString()});
+
+      std::cout << "secret = " << drogon::app().getCustomConfig()["jwt-secret"].asString() << std::endl;
+      std::cout << "sessionTime = " << drogon::app().getCustomConfig()["jwt-sessionTime"].asInt() << std::endl;
+
+      auto user_id = checkloginUtils::checklogin(req);
+      if (user_id.has_value()) {
+        std::cout << "user_id = " << user_id.value() << std::endl;
+      } else {
+        data["msg"] = "noLogin";
+        return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
+      }
+
       data["msg"] = "ok";
       data["name"] = (*json)["name"].asString();
-      data["token"] = drogon::utils::getUuid();
+      data["token"] = token;
+      data["user_id"] = user_id.value();
       return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
     } catch (...) {
-      data["msg"] = "error";
+      data["msg"] = "loginError";
       return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
     }
 }
