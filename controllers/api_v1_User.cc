@@ -36,18 +36,18 @@ void User::login(const HttpRequestPtr &req,
       std::cout << "secret = " << drogon::app().getCustomConfig()["jwt-secret"].asString() << std::endl;
       std::cout << "sessionTime = " << drogon::app().getCustomConfig()["jwt-sessionTime"].asInt() << std::endl;
 
-      auto user_id = checkloginUtils::checklogin(req);
+ /*     auto user_id = checkloginUtils::checklogin(req);
       if (user_id.has_value()) {
         std::cout << "user_id = " << user_id.value() << std::endl;
       } else {
         data["msg"] = "noLogin";
         return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
-      }
+      }*/
 
       data["msg"] = "ok";
       data["name"] = (*json)["name"].asString();
       data["token"] = token;
-      data["user_id"] = user_id.value();
+      data["user_id"] = userId;
       return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
     } catch (...) {
       data["msg"] = "loginError";
