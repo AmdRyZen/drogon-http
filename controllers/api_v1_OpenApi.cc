@@ -7,6 +7,9 @@
 #include "utils/redisUtils.h"
 #include <drogon/HttpClient.h>
 #include <taskflow/taskflow.hpp>  // Taskflow is header-only
+#include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/stringbuffer.h"
 
 using namespace api::v1;
 using namespace drogon;
@@ -91,27 +94,64 @@ Task<> OpenApi::getValue(const HttpRequestPtr req,
 Task<> OpenApi::getProtobuf(const HttpRequestPtr req,
                          std::function<void(const HttpResponsePtr &)> callback) {
   //GOOGLE_PROTOBUF_VERIFY_VERSION;
-
+  // protobuf
   dto::UserData userData;
-  userData.set_id(100);
-  userData.set_name("hello wocao");
+  userData.set_id(1);
+  userData.set_name("name");
 
   std::string buff{};
+  auto t1 = std::chrono::steady_clock::now();
   userData.SerializeToString(&buff);
+  auto t2 = std::chrono::steady_clock::now();
+  //纳秒级
+  double dr_ns = std::chrono::duration<double,std::nano>(t2-t1).count();
+  //微妙级
+  double dr_us = std::chrono::duration<double,std::micro>(t2-t1).count();
+  std::cout << "[pb cost: " << dr_ns << " ns]" << std::endl;
+  std::cout << "[pb cost: " << dr_us << " us]" << std::endl;
+
   //------------------解析----------------------
   dto::UserData rsp2{};
   if (!rsp2.ParseFromString(buff)) {
     std::cout << "parse error\n";
   }
-
   auto name = rsp2.name();
   std::cout << "name:" << name << std::endl;
 
-  Json::Value ret;
-  ret["msg"] = "ok";
-  ret["code"] = 200;
-  ret["name"] = name;
-  co_return callback(HttpResponse::newHttpJsonResponse(std::move(buff)));
+
+  // jsoncpp
+  Json::Value root;
+  root["id"] = 1;
+  root["name"] = "b";
+  auto t3 = std::chrono::steady_clock::now();
+  auto cppjson_content = root.toStyledString();
+  auto t4 = std::chrono::steady_clock::now();
+  //纳秒级
+  double dr_ns1 = std::chrono::duration<double,std::nano>(t4-t3).count();
+  std::cout << "[jsoncpp cost: " << dr_ns1 << " ns]" << std::endl;
+
+  // rapidjson
+  rapidjson::StringBuffer buf;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf); // it can word wrap
+  writer.StartObject();
+  writer.Key("id"); writer.Int(1);
+  writer.Key("name"); writer.String("a");
+  writer.EndObject();
+  auto t5 = std::chrono::steady_clock::now();
+  for (auto i = 0; i < 1000; i++) {
+    buf.GetString();
+  }
+  auto t6 = std::chrono::steady_clock::now();
+  const char* json_content = buf.GetString();
+  //纳秒级
+  double dr_ns2 = std::chrono::duration<double,std::nano>(t6-t5).count();
+  std::cout << "[rapidjson cost: " << dr_ns2 << " ns]" << std::endl;
+
+  auto resp= HttpResponse::newHttpResponse();
+  resp->setStatusCode(k200OK);
+  resp->setContentTypeCode(drogon::CT_APPLICATION_JSON);
+  resp->setBody(json_content);
+  co_return callback(std::move(resp));
 }
 
 
