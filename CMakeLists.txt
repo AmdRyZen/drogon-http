@@ -64,7 +64,7 @@ add_executable(
     service/SbcConvertService.h service/impl/SbcConvertServiceImpl.cpp
     service/TrieService.h service/impl/TrieServiceImpl.cpp
     utils/base64Utils.h utils/base64Utils.c
-    utils/aes.h utils/aes.c utils/cipherUtils.h utils/cipherUtils.cpp utils/md5Utils.h utils/md5Utils.cpp aop/Application.h threadPool/threadPool.h utils/checkloginUtils.h aop/LoginFilter.h)
+    utils/aes.h utils/aes.c utils/cipherUtils.h utils/cipherUtils.cpp utils/md5Utils.h utils/md5Utils.cpp aop/Application.h threadPool/threadPool.h utils/checkloginUtils.h filters/LoginFilter.h)
 
 # ##############################################################################
 # If you include the drogon source code locally in your project, use this method
