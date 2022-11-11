@@ -10,9 +10,11 @@
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
+#include "nlohmann/json.hpp"
 
 using namespace api::v1;
 using namespace drogon;
+using json = nlohmann::json;
 
 // Add definition of your processing function here
 void OpenApi::curlPost(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
@@ -142,15 +144,29 @@ Task<> OpenApi::getProtobuf(const HttpRequestPtr req,
     buf.GetString();
   }
   auto t6 = std::chrono::steady_clock::now();
-  const char* json_content = buf.GetString();
   //纳秒级
   double dr_ns2 = std::chrono::duration<double,std::nano>(t6-t5).count();
   std::cout << "[rapidjson cost: " << dr_ns2 << " ns]" << std::endl;
 
+  // onlohmannJson
+  json onlohmannJson;
+  onlohmannJson["id"] = 1;
+  onlohmannJson["name"] = "c";
+  auto t7 = std::chrono::steady_clock::now();
+  for (auto i = 0; i < 1000; i++) {
+    onlohmannJson.dump();
+  }
+  auto t8 = std::chrono::steady_clock::now();
+  //纳秒级
+  double dr_ns3 = std::chrono::duration<double,std::nano>(t8-t7).count();
+  std::cout << "[onlohmannJson cost: " << dr_ns3 << " ns]" << std::endl;
+
+  std::cout << "---------------xx-----------------" << std::endl;
+
   auto resp= HttpResponse::newHttpResponse();
   resp->setStatusCode(k200OK);
   resp->setContentTypeCode(drogon::CT_APPLICATION_JSON);
-  resp->setBody(json_content);
+  resp->setBody(onlohmannJson.dump());
   co_return callback(std::move(resp));
 }
 
