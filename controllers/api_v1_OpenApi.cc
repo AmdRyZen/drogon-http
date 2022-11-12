@@ -18,15 +18,13 @@ using json = nlohmann::json;
 
 // Add definition of your processing function here
 void OpenApi::curlPost(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
-
     std::string url = "http://127.0.0.1:9090";
-    std::string param = "id=222230&accountName=xxxxx&vipLevel=6&money=10000&ip=127.0.0.1&gameId=0&orderId=11111111";
+    std::string param = "id=222230&bb=xxxxx&cc=6&dd=10000&ip=127.0.0.1&zz=0&ff=11111111";
     std::string aes128Key = "xxxxxxxx";
-    //std::string sign = "channelId=9900202007070002&timestamp=1638263374&key=Mm2xwNfsPpiFKExbGd3ledGZKmjJfScJ";
 
     auto client = drogon::HttpClient::newHttpClient(url);
     // aes
-    std::string encryptedText = cipherUtils::encrypt_cbc(SbcConvertService::ws2s(SbcConvertService::s2ws(param)), aes128Key, aes128Key) + "==";
+    std::string encryptedText = cipherUtils::encrypt_cbc(SbcConvertService::ws2s(SbcConvertService::s2ws(param)), aes128Key, aes128Key);
     std::cout << "encryptedText = " << encryptedText << std::endl;
     const std::string &pwd = cipherUtils::decrypt_cbc(encryptedText, aes128Key, aes128Key);
     std::cout << "pwd = " << pwd << std::endl;
@@ -38,8 +36,8 @@ void OpenApi::curlPost(const HttpRequestPtr &req, std::function<void(const HttpR
     md5Utils::MD5Init(&md5);
     md5Utils::MD5Update(&md5, encrypt, (int)strlen((char *)encrypt));
     md5Utils::MD5Final(&md5, decrypt);
-    for (size_t i = 0; i < 16; i++){
-        printf("%02x", decrypt[i]);
+    for (unsigned char i : decrypt){
+        printf("%02x", i);
     }
     std::cout << std::endl;
 
@@ -72,7 +70,6 @@ void OpenApi::curlPost(const HttpRequestPtr &req, std::function<void(const HttpR
             }
             std::cout << "cpp-demo : 接收反馈result = " <<  response->getBody() << std::endl;
     });
-
 
     Json::Value data;
     data["msg"] = "ok";
@@ -167,7 +164,7 @@ Task<> OpenApi::getProtobuf(const HttpRequestPtr req,
   resp->setStatusCode(k200OK);
   resp->setContentTypeCode(drogon::CT_APPLICATION_JSON);
   resp->setBody(onlohmannJson.dump());
-  co_return callback(std::move(resp));
+  co_return callback(resp);
 }
 
 
@@ -271,12 +268,12 @@ Task<> OpenApi::fix(const HttpRequestPtr req,
   std::cout << "attr = " << sizeof(attr) << std::endl;
   std::cout << "__data = " << sizeof(__data) << std::endl;
 
-  auto lhaving = co_await clientPtr->execSqlCoro("select user_id from currency_gamecoin_log where  original_number != 0 and op_number != 0  group by user_id having count(1) > 1 order by create_time");
+  auto lhaving = co_await clientPtr->execSqlCoro("select user_id from xxxxx where  original_number != 0 and op_number != 0  group by user_id having count(1) > 1 order by create_time");
   for (std::size_t n = 0; n < lhaving.size(); ++n) {
     auto userId =  lhaving[n]["user_id"].template as<std::int32_t>();
 
     // ....
-    auto result = co_await clientPtr->execSqlCoro("select * from currency_gamecoin_log where original_number != 0 and op_number != 0 and user_id = ? order by create_time desc", userId);
+    auto result = co_await clientPtr->execSqlCoro("select * from xxxxxxxx where original_number != 0 and op_number != 0 and user_id = ? order by create_time desc", userId);
 
     for (std::size_t i = 0; i < result.size(); ++i) {
       auto original_number = result[i]["original_number"].template as<std::int32_t>();
