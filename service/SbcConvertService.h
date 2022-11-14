@@ -7,18 +7,19 @@
 
 #include "string"
 
-class SbcConvertService {
-public:
-    static std::wstring s2ws(const std::string &str);
+class SbcConvertService
+{
+  public:
+    static std::wstring s2ws(const std::string& str);
 
-    static std::string ws2s(const std::wstring &wstring);
+    static std::string ws2s(const std::wstring& wstring);
 
-public:
-    static std::wstring wsQj2bj(const std::wstring &src);
+  public:
+    static std::wstring wsQj2bj(const std::wstring& src);
 
-    static int charConvert(const wchar_t &src);
+    static int charConvert(const wchar_t& src);
 
-    static int qj2bj(const wchar_t &src);
+    static int qj2bj(const wchar_t& src);
 };
 
-#endif //LEARNING_CPP_SBCCONVERTSERVICE_H
+#endif  //LEARNING_CPP_SBCCONVERTSERVICE_H

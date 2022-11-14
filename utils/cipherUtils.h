@@ -5,18 +5,18 @@
 #ifndef DROGON_HTTP_CIPHERUTILS_H
 #define DROGON_HTTP_CIPHERUTILS_H
 
-
 #pragma once
-#include <string>
 #include <string.h>
+#include <string>
 
 #define BLOCK_SIZE 16
 
-class cipherUtils {
-    public:
-        static std::string encrypt_cbc(const std::string &plaintext, const std::string &skey, const std::string &siv);
+class cipherUtils
+{
+  public:
+    static std::string encrypt_cbc(const std::string& plaintext, const std::string& skey, const std::string& siv);
 
-        static std::string decrypt_cbc(const std::string &basestr, const std::string &skey, const std::string &siv);
+    static std::string decrypt_cbc(const std::string& basestr, const std::string& skey, const std::string& siv);
 };
 
-#endif //DROGON_HTTP_CIPHERUTILS_H
+#endif  //DROGON_HTTP_CIPHERUTILS_H

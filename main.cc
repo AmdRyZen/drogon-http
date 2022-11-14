@@ -3,8 +3,8 @@
 
 using namespace App;
 
-int main() {
-
+int main()
+{
     App::Application().initialization();
 
     drogon::app().loadConfigFile("config.json").run();

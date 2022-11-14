@@ -3,16 +3,19 @@
 #include "user.pb.h"
 #include "utils/redisUtils.h"
 
-struct Subscriber {
+struct Subscriber
+{
     std::string chatRoomName_;
     drogon::SubscriberID id_;
 };
 
-void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, std::string &&message, const WebSocketMessageType &type)
+void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, std::string&& message, const WebSocketMessageType& type)
 {
     //write your application logic here
-    try {
-        if (!message.empty()) {
+    try
+    {
+        if (!message.empty())
+        {
             bool res;
             JSONCPP_STRING errs;
             Json::Value root, lang, mail;
@@ -20,7 +23,8 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
 
             std::unique_ptr<Json::CharReader> const jsonReader(readerBuilder.newCharReader());
             res = jsonReader->parse(message.c_str(), message.c_str() + message.length(), &root, &errs);
-            if (!res || !errs.empty()) {
+            if (!res || !errs.empty())
+            {
                 //std::cout << "parseJson err. " << errs << std::endl;
                 return;
             }
@@ -41,11 +45,12 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
             std::stringstream command;
             command << "get " << root["key"].asString().c_str();
 
-            if (!wsConnPtr->disconnected()) {
+            if (!wsConnPtr->disconnected())
+            {
                 drogon::async_run([wsConnPtr, &command, this]() -> drogon::Task<> {
                     std::string data = co_await redisUtils::getCoroRedisValue(command.str());
                     std::cout << "data: " << data << std::endl;
-                    auto &s = wsConnPtr->getContextRef<Subscriber>();
+                    auto& s = wsConnPtr->getContextRef<Subscriber>();
                     dto::UserData userData;
                     userData.set_id(100);
                     userData.set_name("hello wocao");
@@ -55,19 +60,23 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                     co_return;
                 });
             }
-           /* std::optional<std::string> oi = redisUtils::getRedisValue(command.str());
+            /* std::optional<std::string> oi = redisUtils::getRedisValue(command.str());
             if (oi) {
                 auto &s = wsConnPtr->getContextRef<Subscriber>();
                 chatRooms_.publish(s.chatRoomName_, oi.value());
             }*/
-        } else {
+        }
+        else
+        {
             //std::cout << "message = empty" << std::endl;
         }
-    } catch(...) {
+    }
+    catch (...)
+    {
         std::cout << "handleNewMessage ..." << std::endl;
     }
 }
-void EchoWebsocket::handleNewConnection(const HttpRequestPtr &req, const WebSocketConnectionPtr& wsConnPtr)
+void EchoWebsocket::handleNewConnection(const HttpRequestPtr& req, const WebSocketConnectionPtr& wsConnPtr)
 {
     //write your application logic here
     std::cout << "handleNewConnection" << std::endl;
@@ -76,8 +85,8 @@ void EchoWebsocket::handleNewConnection(const HttpRequestPtr &req, const WebSock
     s.chatRoomName_ = req->getParameter("room_name");
     wsConnPtr->send(s.chatRoomName_);
     s.id_ = chatRooms_.subscribe(s.chatRoomName_,
-                                 [wsConnPtr](const std::string &topic,
-                                        const std::string &message) {
+                                 [wsConnPtr](const std::string& topic,
+                                             const std::string& message) {
                                      // Supress unused variable warning
                                      (void)topic;
                                      wsConnPtr->send(message);
@@ -85,16 +94,18 @@ void EchoWebsocket::handleNewConnection(const HttpRequestPtr &req, const WebSock
     std::cout << "id = " << s.id_ << std::endl;
     std::cout << "chatRoomName = " << s.chatRoomName_ << std::endl;
     wsConnPtr->setContext(std::make_shared<Subscriber>(std::move(s)));
-
 }
 void EchoWebsocket::handleConnectionClosed(const WebSocketConnectionPtr& wsConnPtr)
 {
     //write your application logic here
-    try {
+    try
+    {
         std::cout << "handleConnectionClosed" << std::endl;
-        auto &s = wsConnPtr->getContextRef<Subscriber>();
+        auto& s = wsConnPtr->getContextRef<Subscriber>();
         chatRooms_.unsubscribe(s.chatRoomName_, s.id_);
-    } catch(...) {
+    }
+    catch (...)
+    {
         std::cout << "handleConnectionClosed ..." << std::endl;
     }
 }

@@ -1,6 +1,9 @@
-#cmake -DCMAKE_BUILD_TYPE=Release -B ./build && cmake --build build -j4 --config Release
+#cmake - DCMAKE_BUILD_TYPE = Release - B./ build && cmake-- build build - j4-- config Release
 
-function build_drogon() {
+function build_drogon()
+{
+    clang - format - style = file - i controllers/*
+
     #Update the submodule and initialize
     #git submodule update --init
 
