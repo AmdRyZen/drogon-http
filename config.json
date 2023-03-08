@@ -324,7 +324,7 @@
             //port: Server port, 5432 by default
             "port": 3306,
             //dbname: Database name
-            "dbname": "pirate_tv",
+            "dbname": "mysql",
             //user: 'postgres' by default
             "user": "root",
             //passwd: '' by default

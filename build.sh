@@ -30,7 +30,7 @@ function build_drogon()
     elif [ $1 -eq 2 ]; then
         cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_DROGON_SHARED=ON -DCMAKE_CXX_VISIBILITY_PRESET=hidden -DCMAKE_VISIBILITY_INLINES_HIDDEN=1 $cmake_gen
     else
-        cmake .. -DCMAKE_BUILD_TYPE=Release $cmake_gen
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-11 $cmake_gen
     fi
 
     #If errors then exit

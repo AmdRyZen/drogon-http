@@ -51,12 +51,12 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                     std::string data = co_await redisUtils::getCoroRedisValue(command.str());
                     std::cout << "data: " << data << std::endl;
                     auto& s = wsConnPtr->getContextRef<Subscriber>();
-                    dto::UserData userData;
+                  /*  dto::UserData userData;
                     userData.set_id(100);
                     userData.set_name("hello wocao");
                     std::string buff{};
-                    userData.SerializeToString(&buff);
-                    chatRooms_.publish(s.chatRoomName_, "ID= " + std::to_string(s.id_) + " buff " + buff);
+                    userData.SerializeToString(&buff);*/
+                    chatRooms_.publish(s.chatRoomName_, "ID= " + std::to_string(s.id_) + " buff ");
                     co_return;
                 });
             }

@@ -96,11 +96,11 @@ Task<> OpenApi::getValue(const HttpRequestPtr req,
     co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
 }
 
-Task<> OpenApi::getProtobuf(const HttpRequestPtr req,
+Task<> OpenApi::fastJson(const HttpRequestPtr req,
                             std::function<void(const HttpResponsePtr&)> callback)
 {
     //GOOGLE_PROTOBUF_VERIFY_VERSION;
-    // protobuf
+   /* // protobuf
     dto::UserData userData;
     userData.set_id(1);
     userData.set_name("name");
@@ -124,7 +124,7 @@ Task<> OpenApi::getProtobuf(const HttpRequestPtr req,
     }
     auto name = rsp2.name();
     std::cout << "name:" << name << std::endl;
-
+*/
     // jsoncpp
     Json::Value root;
     root["id"] = 1;

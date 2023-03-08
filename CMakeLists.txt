@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
-SET(CMAKE_C_COMPILER "/usr/local/bin/gcc-11")
-SET(CMAKE_CXX_COMPILER "/usr/local/bin/g++-11")
+SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc@11/11.3.0/bin/gcc-11")
+SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc@11/11.3.0/bin/g++-11")
 
 project(drogon-http C CXX)
 
@@ -75,7 +75,7 @@ add_executable(
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
 find_package(mimalloc 2.0.6 REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon proto_gen_cxx)
+target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon #[[proto_gen_cxx]])
 
 # ##############################################################################
 
