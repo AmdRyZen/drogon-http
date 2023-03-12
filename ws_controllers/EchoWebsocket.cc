@@ -1,7 +1,7 @@
 #include "EchoWebsocket.h"
 #include "drogon/Session.h"
-#include "user.pb.h"
 #include "utils/redisUtils.h"
+#include "boost/format.hpp"
 
 struct Subscriber
 {
@@ -42,8 +42,12 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
             std::cout << "Netease: " << mail["Netease"].asString() << std::endl;
             std::cout << "Hotmail: " << mail["Hotmail"].asString() << std::endl;*/
 
-            std::stringstream command;
-            command << "get " << root["key"].asString().c_str();
+            /*std::stringstream command;
+            command << "get " << root["key"].asString().c_str();*/
+            // 创建一个格式化字符串
+            boost::format command("get %s");
+            // 按顺序绑定参数
+            command % root["key"].asString();
 
             if (!wsConnPtr->disconnected())
             {
@@ -51,15 +55,11 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                     std::string data = co_await redisUtils::getCoroRedisValue(command.str());
                     std::cout << "data: " << data << std::endl;
                     auto& s = wsConnPtr->getContextRef<Subscriber>();
-                  /*  dto::UserData userData;
-                    userData.set_id(100);
-                    userData.set_name("hello wocao");
-                    std::string buff{};
-                    userData.SerializeToString(&buff);*/
                     chatRooms_.publish(s.chatRoomName_, "ID= " + std::to_string(s.id_) + " buff ");
                     co_return;
                 });
             }
+            command.clear();
             /* std::optional<std::string> oi = redisUtils::getRedisValue(command.str());
             if (oi) {
                 auto &s = wsConnPtr->getContextRef<Subscriber>();

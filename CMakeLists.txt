@@ -64,7 +64,7 @@ add_executable(
     service/SbcConvertService.h service/impl/SbcConvertServiceImpl.cpp
     service/TrieService.h service/impl/TrieServiceImpl.cpp
     utils/base64Utils.h utils/base64Utils.c
-    utils/aes.h utils/aes.c utils/cipherUtils.h utils/cipherUtils.cpp utils/md5Utils.h utils/md5Utils.cpp aop/Application.h threadPool/threadPool.h utils/checkloginUtils.h filters/LoginFilter.h)
+    utils/aes.h utils/aes.c utils/cipherUtils.h utils/cipherUtils.cpp utils/md5Utils.h utils/md5Utils.cpp aop/Application.h threadPool/threadPool.h utils/checkloginUtils.h filters/LoginFilter.h utils/printer.h)
 
 # ##############################################################################
 # If you include the drogon source code locally in your project, use this method
@@ -75,15 +75,16 @@ add_executable(
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
 find_package(mimalloc 2.0.6 REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon #[[proto_gen_cxx]])
+find_package(Boost 1.81.0 REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon Boost::boost proto_gen_cxx)
 
 # ##############################################################################
 
 if (CMAKE_CXX_STANDARD LESS 17)
     # With C++14, use boost to support any, string_view and filesystem
     message(STATUS "use c++14")
-    find_package(Boost 1.61.0 REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost)
+    #find_package(Boost 1.81.0 REQUIRED)
+    #target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost)
 elseif (CMAKE_CXX_STANDARD LESS 23)
     message(STATUS "use c++20")
 else ()
@@ -117,4 +118,4 @@ target_sources(${PROJECT_NAME}
 
 # ##############################################################################
 
-#add_subdirectory(test)
+add_subdirectory(test)

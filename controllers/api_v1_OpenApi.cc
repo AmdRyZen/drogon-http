@@ -11,10 +11,77 @@
 #include "utils/redisUtils.h"
 #include <drogon/HttpClient.h>
 #include <taskflow/taskflow.hpp>  // Taskflow is header-only
+#include "boost/version.hpp"
+#include "boost/regex.hpp"
+#include "utils/printer.h"
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/format.hpp>
 
 using namespace api::v1;
 using namespace drogon;
 using json = nlohmann::json;
+using namespace boost::gregorian;
+
+void printerFunc()
+{
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    // 创建io_service对象
+    io_service io;
+    // 创建printer对象，初始化定时器并启动异步等待操作
+    printer p(io, 5);
+    // 运行io_service对象，处理所有事件（包括回调函数）
+    io.run();
+}
+
+Task<> OpenApi::boost(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
+{
+    std::cout << BOOST_LIB_VERSION << std::endl;
+    std::cout << BOOST_VERSION << std::endl;
+
+    // std::async函数启动一个异步任务，传入func1和一个int值作为参数
+    std::future<void> f = std::async(printerFunc);
+    // 在主线程中做一些其他事情
+    std::cout << "Doing something else in main thread." << std::endl;
+
+    std::cout << boost::format("Hello %s! You are %d years old.") % "Tom" % 25 << std::endl;
+
+    std::string email = "someone@example.com";
+    boost::regex pattern("\\b[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}\\b");
+    if (boost::regex_match(email, pattern))
+        std::cout << "Valid email address." << std::endl;
+    else
+        std::cout << "Invalid email address." << std::endl;
+
+
+    boost::random::mt19937 rng; // create a random number generator
+    boost::random::uniform_int_distribution<> dist(0, 9); // create a uniform distribution
+    for (int i = 0; i < 10; ++i) // generate and print 10 random numbers
+        std::cout << dist(rng) << " ";
+    std::cout << std::endl;
+
+    // 创建一个date对象，表示今天的日期
+    date today = day_clock::local_day();
+    std::cout << "Today is: " << today << std::endl;
+
+    // 创建一个date对象，表示2023年2月14日
+    date valentine(2023, Feb, 14);
+    std::cout << "Valentine's day is: " << valentine << std::endl;
+
+    // 创建一个date对象，表示从字符串解析的日期
+    date birthday(from_string("2000-01-01"));
+    std::cout << "Birthday is: " << birthday << std::endl;
+
+    // 计算两个日期之间的差值，返回一个date_duration对象
+    date_duration days_to_valentine = valentine - today;
+    std::cout << "Days to Valentine's day: " << days_to_valentine.days() << std::endl;
+
+    Json::Value ret;
+    ret["msg"] = "ok";
+    ret["code"] = 200;
+    co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
+}
 
 // Add definition of your processing function here
 void OpenApi::curlPost(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback)
@@ -96,12 +163,11 @@ Task<> OpenApi::getValue(const HttpRequestPtr req,
     co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
 }
 
-Task<> OpenApi::fastJson(const HttpRequestPtr req,
-                            std::function<void(const HttpResponsePtr&)> callback)
+Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
     //GOOGLE_PROTOBUF_VERIFY_VERSION;
-   /* // protobuf
-    dto::UserData userData;
+    // protobuf
+    /*dto::UserData userData;
     userData.set_id(1);
     userData.set_name("name");
 
@@ -123,8 +189,8 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req,
         std::cout << "parse error\n";
     }
     auto name = rsp2.name();
-    std::cout << "name:" << name << std::endl;
-*/
+    std::cout << "name:" << name << std::endl;*/
+
     // jsoncpp
     Json::Value root;
     root["id"] = 1;
@@ -203,8 +269,7 @@ inline void threadF1()
     }
 }
 
-Task<> OpenApi::threadPool(const HttpRequestPtr req,
-                           std::function<void(const HttpResponsePtr&)> callback)
+Task<> OpenApi::threadPool(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
     auto result = pool.enqueue([] {
         threadF();
@@ -269,8 +334,7 @@ Task<> OpenApi::threadPool(const HttpRequestPtr req,
     co_return callback(HttpResponse::newHttpJsonResponse(std::move(future_ret)));
 }
 
-Task<> OpenApi::fix(const HttpRequestPtr req,
-                    std::function<void(const HttpResponsePtr&)> callback)
+Task<> OpenApi::fix(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
     // mysqlbinlog --no-defaults --base64-output=decode-rows -v ./mysql-bin.000131 --result-file=./2.sql
 
