@@ -26,15 +26,15 @@ endif ()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# 条件判断
+# 条件判断  -flto   -flto=thin
 if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
     set(CMAKE_CXX_FLAGS_DEBUG "-pipe -Wall -O0 -L/usr/local/lib -ljemalloc")
     message("Debug mode:${CMAKE_CXX_FLAGS_DEBUG}")
 elseif(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -march=native -flto -L/usr/local/lib -ljemalloc")
+    set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -march=native -L/usr/local/lib -ljemalloc")
     message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
 else()
-    set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -march=native -flto -L/usr/local/lib -ljemalloc")
+    set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -march=native -L/usr/local/lib -ljemalloc")
     message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
     message("CMAKE_BUILD_TYPE:${CMAKE_BUILD_TYPE}")
 endif()
