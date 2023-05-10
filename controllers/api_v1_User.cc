@@ -144,7 +144,7 @@ void User::getBanWord(const HttpRequestPtr& req,
         "ＦＵｃｋ",  // 全角大小写混合
         "F。uc——k",  // 全角特殊符号
         "fＵｃk",    // 全角半角混合
-        "fＵ😊ｃk",   // Emotion表情，测试
+        "fＵ😊ｃk",  // Emotion表情，测试
 
         // 简体中文
         "微信",

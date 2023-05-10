@@ -5,7 +5,6 @@
 #include "rapidjson/stringbuffer.h"
 #include "service/SbcConvertService.h"
 #include "threadPool/threadPool.h"
-#include "user.pb.h"
 #include "utils/cipherUtils.h"
 #include "utils/md5Utils.h"
 #include "utils/redisUtils.h"
@@ -48,16 +47,15 @@ Task<> OpenApi::boost(const HttpRequestPtr req, std::function<void(const HttpRes
     std::cout << boost::format("Hello %s! You are %d years old.") % "Tom" % 25 << std::endl;
 
     std::string email = "someone@example.com";
-    boost::regex pattern("\\b[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}\\b");
+    boost::regex pattern(R"(\b[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b)");
     if (boost::regex_match(email, pattern))
         std::cout << "Valid email address." << std::endl;
     else
         std::cout << "Invalid email address." << std::endl;
 
-
-    boost::random::mt19937 rng; // create a random number generator
-    boost::random::uniform_int_distribution<> dist(0, 9); // create a uniform distribution
-    for (int i = 0; i < 10; ++i) // generate and print 10 random numbers
+    boost::random::mt19937 rng;                            // create a random number generator
+    boost::random::uniform_int_distribution<> dist(0, 9);  // create a uniform distribution
+    for (int i = 0; i < 10; ++i)                           // generate and print 10 random numbers
         std::cout << dist(rng) << " ";
     std::cout << std::endl;
 
@@ -347,14 +345,21 @@ Task<> OpenApi::fix(const HttpRequestPtr req, std::function<void(const HttpRespo
         Data()
           : data()
         {}
-    } __data;
+    } _data;
 
-    static std::aligned_storage<sizeof(Data), alignof(Data)>::type data;
-    Data* attr = new (&data) Data;
-    attr->data["data"] = "aligned_storage";
-    std::cout << attr->data << std::endl;
-    std::cout << "attr = " << sizeof(attr) << std::endl;
-    std::cout << "__data = " << sizeof(__data) << std::endl;
+    /*template<
+        std::size_t Len,
+        std::size_t Align = *//*default-alignment*//*
+        >
+    struct aligned_storage;
+    (since C++11)(deprecated in C++23)*/
+
+    //static std::aligned_storage<sizeof(Data), alignof(Data)>::type data;
+    //Data* attr = new (&data) Data;
+    //attr->data["data"] = "aligned_storage";
+    //std::cout << attr->data << std::endl;
+    //std::cout << "attr = " << sizeof(attr) << std::endl;
+    std::cout << "__data = " << sizeof(_data) << std::endl;
 
     auto lhaving = co_await clientPtr->execSqlCoro("select user_id from xxxxx where  original_number != 0 and op_number != 0  group by user_id having count(1) > 1 order by create_time");
     for (std::size_t n = 0; n < lhaving.size(); ++n)
@@ -377,24 +382,24 @@ Task<> OpenApi::fix(const HttpRequestPtr req, std::function<void(const HttpRespo
 
             if ((original_number + op_number) != next_original_number && next_original_number != 0)
             {
-                __data.item["record_id"] = result[i]["record_id"].template as<std::int32_t>();
-                __data.item["user_id"] = result[i]["user_id"].template as<std::int32_t>();
-                __data.item["original_number"] = result[i]["original_number"].template as<std::int32_t>();
-                __data.item["op_number"] = result[i]["op_number"].template as<std::int32_t>();
-                __data.item["next_original_number"] = next_original_number;
-                __data.item["diff"] = original_number + op_number - next_original_number;
+                _data.item["record_id"] = result[i]["record_id"].template as<std::int32_t>();
+                _data.item["user_id"] = result[i]["user_id"].template as<std::int32_t>();
+                _data.item["original_number"] = result[i]["original_number"].template as<std::int32_t>();
+                _data.item["op_number"] = result[i]["op_number"].template as<std::int32_t>();
+                _data.item["next_original_number"] = next_original_number;
+                _data.item["diff"] = original_number + op_number - next_original_number;
 
-                __data.data.append(__data.item);
-                __data.item.clear();
+                _data.data.append(_data.item);
+                _data.item.clear();
             }
         }
     }
 
-    std::cout << "size  = " << __data.data.size() << std::endl;
+    std::cout << "size  = " << _data.data.size() << std::endl;
 
     Json::Value ret;
     ret["msg"] = "ok";
-    ret["data"] = __data.data;
+    ret["data"] = _data.data;
 
     co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
 }
