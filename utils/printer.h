@@ -6,7 +6,7 @@
 #define DROGON_HTTP_PRINTER_H
 
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <iostream>
 #include <boost/thread.hpp>
 
@@ -16,7 +16,7 @@ class printer
 {
   public:
     // 构造函数，初始化定时器对象
-    printer(io_service& io, int i = 1) : timer_(io, boost::posix_time::seconds(i)), timer_i(i) {
+     explicit printer(io_service& io, int i = 1) : timer_i(i), timer_(io, boost::posix_time::seconds(i)) {
         // 启动异步等待操作，并绑定回调函数
         timer_.async_wait(boost::bind(&printer::print, this));
     }

@@ -6,6 +6,6 @@ void PlaintextCtrl::asyncHandleHttpRequest(const HttpRequestPtr& req, std::funct
     auto resp = HttpResponse::newHttpResponse();
     resp->setStatusCode(k200OK);
     resp->setContentTypeCode(CT_TEXT_HTML);
-    resp->setBody("Hello World!");
+    //resp->setBody("Hello World!");
     callback(std::move(resp));
 }
