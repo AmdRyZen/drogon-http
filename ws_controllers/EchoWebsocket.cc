@@ -6,7 +6,7 @@
 struct Subscriber
 {
     std::string chatRoomName_;
-    drogon::SubscriberID id_;
+    drogon::SubscriberID id_{};
 };
 
 void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, std::string&& message, const WebSocketMessageType& type)

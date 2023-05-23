@@ -21,26 +21,26 @@ class User : public drogon::HttpController<User>
     //ADD_METHOD_TO(User::your_method_name,"/absolute/path/{1}/{2}/list",Get);//path is /absolute/path/{arg1}/{arg2}/list
     METHOD_LIST_END
 
-    void login(const HttpRequestPtr& req,
+    static void login(const HttpRequestPtr& req,
                std::function<void(const HttpResponsePtr&)>&& callback,
                std::string&& userId,
                const std::string& password);
 
-    Task<> getInfo(const HttpRequestPtr req,
+    static Task<> getInfo(const HttpRequestPtr req,
                    std::function<void(const HttpResponsePtr&)> callback,
                    std::string userId,
                    const std::string token);
 
-    void getBanWord(const HttpRequestPtr& req,
+    static void getBanWord(const HttpRequestPtr& req,
                     std::function<void(const HttpResponsePtr&)>&& callback,
                     const std::string& word);
 
-    void serdeJson(const HttpRequestPtr& req,
+    static void serdeJson(const HttpRequestPtr& req,
                    std::function<void(const HttpResponsePtr&)>&& callback);
     // your declaration of processing function maybe like this:
     // void get(const HttpRequestPtr& req,std::function<void (const HttpResponsePtr &)> &&callback,int p1,std::string p2);
     // void your_method_name(const HttpRequestPtr& req,std::function<void (const HttpResponsePtr &)> &&callback,double p1,int p2) const;
-    void quit(const HttpRequestPtr& req,
+    static void quit(const HttpRequestPtr& req,
               std::function<void(const HttpResponsePtr&)>&& callback);
 };
 }  // namespace api::v1

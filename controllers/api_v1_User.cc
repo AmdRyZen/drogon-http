@@ -1,7 +1,6 @@
 #include "api_v1_User.h"
 #include "jwt-cpp/base.h"
 #include "jwt-cpp/jwt.h"
-#include "utils/checkloginUtils.h"
 #include "utils/redisUtils.h"
 #include <filesystem>
 #include <fstream>
@@ -20,7 +19,7 @@ void User::login(const HttpRequestPtr& req,
         if (req->getJsonObject() == nullptr || req->getJsonObject()->empty())
         {
             data["msg"] = "json is empty";
-            return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
+            return callback(HttpResponse::newHttpJsonResponse(data));
         }
 
         LOG_INFO << "userId= " << userId << " login";
@@ -39,19 +38,12 @@ void User::login(const HttpRequestPtr& req,
         std::cout << "secret = " << drogon::app().getCustomConfig()["jwt-secret"].asString() << std::endl;
         std::cout << "sessionTime = " << drogon::app().getCustomConfig()["jwt-sessionTime"].asInt() << std::endl;
 
-        /*     auto user_id = checkloginUtils::checklogin(req);
-      if (user_id.has_value()) {
-        std::cout << "user_id = " << user_id.value() << std::endl;
-      } else {
-        data["msg"] = "noLogin";
-        return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
-      }*/
 
         data["msg"] = "ok";
         data["name"] = (*json)["name"].asString();
         data["token"] = token;
         data["user_id"] = userId;
-        return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
+        return callback(HttpResponse::newHttpJsonResponse(data));
     }
     catch (...)
     {
@@ -69,18 +61,10 @@ Task<> User::getInfo(const HttpRequestPtr req,
 
     auto clientPtr = drogon::app().getFastDbClient();
 
-    struct Data : public Json::Value
-    {
-        Json::Value data;
-        Json::Value item;
-        std::int32_t num_users;
-        std::string redis_value;
-        Data()
-          : data()
-          , num_users{0}
-          , redis_value{""}
-        {}
-    } __data;
+    Json::Value item;
+    Json::Value data;
+    std::int32_t num_users = 0;
+    std::string redis_value;
 
     try
     {
@@ -99,15 +83,15 @@ Task<> User::getInfo(const HttpRequestPtr req,
         }
         auto result = co_await clientPtr->execSqlCoro("select * from f_user where username != ? order by id asc limit 10 ", "薯条三兄弟");
         auto count = co_await clientPtr->execSqlCoro("select count(1) from f_user where username != ?", "薯条三兄弟");
-        std::for_each(result.begin(), result.end(), [&](const auto& row) {
-            __data.item["id"] = row["id"].template as<std::int32_t>();
-            __data.item["username"] = row["username"].template as<std::string>();
-            __data.item["phone"] = row["phone"].template as<std::string>();
-            __data.item["avatar"] = row["avatar"].template as<std::string>();
-            __data.data.append(__data.item);
-            __data.item.clear();
+        std::for_each(result.begin(), result.end(), [&item, &data](const auto& row) {
+            item["id"] = row["id"].template as<std::int32_t>();
+            item["username"] = row["username"].template as<std::string>();
+            item["phone"] = row["phone"].template as<std::string>();
+            item["avatar"] = row["avatar"].template as<std::string>();
+            data.append(item);
+            item.clear();
         });
-        __data.num_users = count[0][0].as<std::int32_t>();
+        num_users = count[0][0].as<std::int32_t>();
     }
     catch (const drogon::orm::DrogonDbException& e)
     {
@@ -117,17 +101,16 @@ Task<> User::getInfo(const HttpRequestPtr req,
     std::stringstream command;
     command << "get "
             << "aa";
-    __data.redis_value = co_await redisUtils::getCoroRedisValue(command.str());
+    redis_value = co_await redisUtils::getCoroRedisValue(command.str());
 
     //验证token有效性等
     //读数据库或缓存获取用户信息
     Json::Value ret;
     ret["msg"] = "ok";
     ret["code"] = 200;
-    ret["redis_value"] = __data.redis_value;
-    ret["num_users"] = __data.num_users;
-    ret["data"] = __data.data;
-    __data.clear();
+    ret["redis_value"] = redis_value;
+    ret["num_users"] = num_users;
+    ret["data"] = std::move(data);
     co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
 }
 
@@ -223,5 +206,5 @@ void User::quit(const HttpRequestPtr& req, std::function<void(const HttpResponse
     drogon::app().quit();
     auto data = HttpResponse::newHttpResponse();
     data->setStatusCode(HttpStatusCode::k204NoContent);
-    callback(std::move(data));
+    callback(data);
 }
