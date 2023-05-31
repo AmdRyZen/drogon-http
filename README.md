@@ -12,4 +12,4 @@ drogon-http
 
 gcc-13 -Q --help=optimizers -Ofast
 
-set(COMPILATION_FLAGS "${CMAKE_CXX_FLAGS_RELEASE} -pipe -w -Ofast -march=native -flto -L/usr/local/lib -ljemalloc")
+set(COMPILATION_FLAGS "-pipe -w -Ofast -fomit-frame-pointer -march=native -flto -L/usr/local/lib -ljemalloc")
