@@ -290,8 +290,8 @@ Task<> OpenApi::threadPool(const HttpRequestPtr req, std::function<void(const Ht
     auto ret = co_await clientPtr->execSqlCoro("select count(1) from f_user where username != ?", "薯条三兄弟");
     auto count = ret[0][0].as<std::int32_t>();
 
-    // create asynchronous tasks directly from an executor
-    tf::Future<std::optional<bool>> future = executor.async([&count]() {
+    // now - use std::future instead
+    std::future<bool> fu = executor.async([&count](){
         std::cout << "async task returns boolean" << std::endl;
         std::cout << "count = " << count << std::endl;
         if (count >= 0)
@@ -300,6 +300,8 @@ Task<> OpenApi::threadPool(const HttpRequestPtr req, std::function<void(const Ht
         }
         return false;
     });
+    fu.get();
+
     executor.silent_async([]() {
         std::cout << "async task of no return" << std::endl;
     });
@@ -314,9 +316,9 @@ Task<> OpenApi::threadPool(const HttpRequestPtr req, std::function<void(const Ht
     executor.run(taskflow).wait();
 
     bool future_ret = false;
-    if (future.valid())
+    if (fu.get())
     {
-        future_ret = future.get().value();
+        future_ret = fu.get();
     }
 
     double foo = 0.0;
@@ -329,7 +331,7 @@ Task<> OpenApi::threadPool(const HttpRequestPtr req, std::function<void(const Ht
     else  // (res == 0)
         std::cout << "foo 与 bar 相等" << std::endl;
 
-    co_return callback(HttpResponse::newHttpJsonResponse(std::move(future_ret)));
+    co_return callback(HttpResponse::newHttpJsonResponse(future_ret));
 }
 
 Task<> OpenApi::fix(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)

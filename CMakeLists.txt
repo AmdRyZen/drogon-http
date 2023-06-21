@@ -78,7 +78,7 @@ add_executable(
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
 find_package(mimalloc 2.0.6 REQUIRED)
-find_package(Boost 1.81.0 REQUIRED)
+find_package(Boost 1.82.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon Boost::boost proto_gen_cxx)
 
 # ##############################################################################
