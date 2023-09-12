@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
-SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc/13.1.0/bin/gcc-13")
-SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc/13.1.0/bin/g++-13")
+SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/gcc-13")
+SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13")
 
 project(drogon-http C CXX)
 
