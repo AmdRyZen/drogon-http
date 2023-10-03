@@ -27,27 +27,27 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 条件判断  -flto   -flto=thin
-if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
+if (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
     set(CMAKE_CXX_FLAGS_DEBUG "-pipe -Wall -O0 -L/usr/local/lib -ljemalloc")
     message("Debug mode:${CMAKE_CXX_FLAGS_DEBUG}")
-elseif(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
+elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
     set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -L/usr/local/lib -ljemalloc")
     message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
-else()
+else ()
     set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -L/usr/local/lib -ljemalloc")
     message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
     message("CMAKE_BUILD_TYPE:${CMAKE_BUILD_TYPE}")
-endif()
+endif ()
 
 #find_package(Threads REQUIRED)
 #find_package(PkgConfig REQUIRED)
 # Find required protobuf package
 find_package(Protobuf REQUIRED)
-if(PROTOBUF_FOUND)
+if (PROTOBUF_FOUND)
     message(STATUS "protobuf library found")
-else()
+else ()
     message(FATAL_ERROR "protobuf library is needed but cant be found")
-endif()
+endif ()
 include_directories(${Protobuf_INCLUDE_DIRS})
 
 add_subdirectory(proto)
@@ -55,19 +55,19 @@ add_subdirectory(proto)
 include_directories(${PROTO_GEN_CXX_INCLUDE_DIRS}) # cpp
 
 add_executable(
-    ${PROJECT_NAME} main.cc
-    controllers/PlaintextCtrl.cc controllers/PlaintextCtrl.h
-    controllers/api_v1_User.cc controllers/api_v1_User.h
-    controllers/api_v1_OpenApi.cc controllers/api_v1_OpenApi.h
-    utils/redisUtils.h utils/redisUtils.cpp
-    ws_controllers/EchoWebsocket.h ws_controllers/EchoWebsocket.cc
-    service/SbcConvertService.h service/impl/SbcConvertServiceImpl.cpp
-    service/TrieService.h service/impl/TrieServiceImpl.cpp
-    utils/base64Utils.h utils/base64Utils.c
-    utils/aes.h utils/aes.c utils/cipherUtils.h utils/cipherUtils.cpp
-    utils/md5Utils.h utils/md5Utils.cpp aop/Application.h
-    threadPool/threadPool.h utils/checkloginUtils.h
-    filters/LoginFilter.h utils/printer.h)
+        ${PROJECT_NAME} main.cc
+        controllers/PlaintextCtrl.cc controllers/PlaintextCtrl.h
+        controllers/api_v1_User.cc controllers/api_v1_User.h
+        controllers/api_v1_OpenApi.cc controllers/api_v1_OpenApi.h
+        utils/redisUtils.h utils/redisUtils.cpp
+        ws_controllers/EchoWebsocket.h ws_controllers/EchoWebsocket.cc
+        service/SbcConvertService.h service/impl/SbcConvertServiceImpl.cpp
+        service/TrieService.h service/impl/TrieServiceImpl.cpp
+        utils/base64Utils.h utils/base64Utils.c
+        utils/aes.h utils/aes.c utils/cipherUtils.h utils/cipherUtils.cpp
+        utils/md5Utils.h utils/md5Utils.cpp aop/Application.h
+        threadPool/threadPool.h utils/checkloginUtils.h
+        filters/LoginFilter.h utils/printer.h)
 
 # ##############################################################################
 # If you include the drogon source code locally in your project, use this method
@@ -100,21 +100,21 @@ aux_source_directory(plugins PLUGIN_SRC)
 aux_source_directory(models MODEL_SRC)
 
 drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views
-                    ${CMAKE_CURRENT_BINARY_DIR})
+        ${CMAKE_CURRENT_BINARY_DIR})
 # use the following line to create views with namespaces.
 # drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views
 #                     ${CMAKE_CURRENT_BINARY_DIR} TRUE)
 
 target_include_directories(${PROJECT_NAME}
-                           PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-                                   ${CMAKE_CURRENT_SOURCE_DIR}/models)
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/models)
 target_sources(${PROJECT_NAME}
-               PRIVATE
-               ${SRC_DIR}
-               ${CTL_SRC}
-               ${FILTER_SRC}
-               ${PLUGIN_SRC}
-               ${MODEL_SRC})
+        PRIVATE
+        ${SRC_DIR}
+        ${CTL_SRC}
+        ${FILTER_SRC}
+        ${PLUGIN_SRC}
+        ${MODEL_SRC})
 # ##############################################################################
 # uncomment the following line for dynamically loading views
 # set_property(TARGET ${PROJECT_NAME} PROPERTY ENABLE_EXPORTS ON)

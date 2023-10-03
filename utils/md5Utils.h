@@ -17,11 +17,11 @@ typedef struct
 #define H(x, y, z) (x ^ y ^ z)
 #define I(x, y, z) (y ^ (x | ~z))
 #define ROTATE_LEFT(x, n) ((x << n) | (x >> (32 - n)))
-#define FF(a, b, c, d, x, s, ac)  \
-    {                             \
+#define FF(a, b, c, d, x, s, ac)   \
+    {                              \
         a += F1(b, c, d) + x + ac; \
-        a = ROTATE_LEFT(a, s);    \
-        a += b;                   \
+        a = ROTATE_LEFT(a, s);     \
+        a += b;                    \
     }
 #define GG(a, b, c, d, x, s, ac)  \
     {                             \

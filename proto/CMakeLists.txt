@@ -13,11 +13,11 @@ find_program(
 )
 
 # 需要编译的 proto 文件
-file (GLOB PROTO_SOURCE_FILES
+file(GLOB PROTO_SOURCE_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/*.proto"
-        )
+)
 
-set(PROTO_PATH    "${CMAKE_CURRENT_SOURCE_DIR}")
+set(PROTO_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 #set(PROTO_C_OUT   "${CMAKE_CURRENT_BINARY_DIR}/gen_c")
 set(PROTO_CXX_OUT "${CMAKE_CURRENT_BINARY_DIR}/gen_cxx")
 
@@ -25,20 +25,20 @@ set(PROTO_CXX_OUT "${CMAKE_CURRENT_BINARY_DIR}/gen_cxx")
 file(MAKE_DIRECTORY ${PROTO_CXX_OUT})
 
 # 使用 protoc 处理 proto 文件
-foreach(input_proto ${PROTO_SOURCE_FILES})
+foreach (input_proto ${PROTO_SOURCE_FILES})
     get_filename_component(DIR ${input_proto} DIRECTORY)
     get_filename_component(FILE_NAME ${input_proto} NAME_WE)
 
-   #[[ set(OUTPUT_C_HEADER     "${PROTO_C_OUT}/${FILE_NAME}.pb-c.h")
-    set(OUTPUT_C_SOURCE     "${PROTO_C_OUT}/${FILE_NAME}.pb-c.c")
-    list(APPEND OUTPUT_SOURCES_C
-            ${OUTPUT_C_HEADER} ${OUTPUT_C_SOURCE})]]
+    #[[ set(OUTPUT_C_HEADER     "${PROTO_C_OUT}/${FILE_NAME}.pb-c.h")
+     set(OUTPUT_C_SOURCE     "${PROTO_C_OUT}/${FILE_NAME}.pb-c.c")
+     list(APPEND OUTPUT_SOURCES_C
+             ${OUTPUT_C_HEADER} ${OUTPUT_C_SOURCE})]]
 
-    set(OUTPUT_CXX_HEADER   "${PROTO_CXX_OUT}/${FILE_NAME}.pb.h")
-    set(OUTPUT_CXX_SOURCE   "${PROTO_CXX_OUT}/${FILE_NAME}.pb.cc")
+    set(OUTPUT_CXX_HEADER "${PROTO_CXX_OUT}/${FILE_NAME}.pb.h")
+    set(OUTPUT_CXX_SOURCE "${PROTO_CXX_OUT}/${FILE_NAME}.pb.cc")
     list(APPEND OUTPUT_SOURCES_CXX
             ${OUTPUT_CXX_HEADER} ${OUTPUT_CXX_SOURCE})
-endforeach()
+endforeach ()
 
 #[[add_custom_command(
         OUTPUT  ${OUTPUT_SOURCES_C}
@@ -49,7 +49,7 @@ endforeach()
 )]]
 
 add_custom_command(
-        OUTPUT  ${OUTPUT_SOURCES_CXX}
+        OUTPUT ${OUTPUT_SOURCES_CXX}
         COMMAND ${PROTOC_CXX} --cpp_out=${PROTO_CXX_OUT} --proto_path=${PROTO_PATH} ${PROTO_SOURCE_FILES}
         DEPENDS ${PROTO_SOURCE_FILES}
         WORKING_DIRECTORY ${PROTO_PATH}

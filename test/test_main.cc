@@ -7,7 +7,7 @@ DROGON_TEST(BasicTest)
     // Add your tests here
 }
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
     using namespace drogon;
 
@@ -17,7 +17,9 @@ int main(int argc, char** argv)
     // Start the main loop on another thread
     std::thread thr([&]() {
         // Queues the promise to be fulfilled after starting the loop
-        app().getLoop()->queueInLoop([&p1]() { p1.set_value(); });
+        app().getLoop()->queueInLoop([&p1]() {
+            p1.set_value();
+        });
         app().run();
     });
 
@@ -26,7 +28,9 @@ int main(int argc, char** argv)
     int status = test::run(argc, argv);
 
     // Ask the event loop to shutdown and wait
-    app().getLoop()->queueInLoop([]() { app().quit(); });
+    app().getLoop()->queueInLoop([]() {
+        app().quit();
+    });
     thr.join();
     return status;
 }

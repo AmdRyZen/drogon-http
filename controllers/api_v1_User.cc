@@ -38,7 +38,6 @@ void User::login(const HttpRequestPtr& req,
         std::cout << "secret = " << drogon::app().getCustomConfig()["jwt-secret"].asString() << std::endl;
         std::cout << "sessionTime = " << drogon::app().getCustomConfig()["jwt-sessionTime"].asInt() << std::endl;
 
-
         data["msg"] = "ok";
         data["name"] = (*json)["name"].asString();
         data["token"] = token;

@@ -291,7 +291,7 @@ Task<> OpenApi::threadPool(const HttpRequestPtr req, std::function<void(const Ht
     auto count = ret[0][0].as<std::int32_t>();
 
     // now - use std::future instead
-    std::future<bool> fu = executor.async([&count](){
+    std::future<bool> fu = executor.async([&count]() {
         std::cout << "async task returns boolean" << std::endl;
         std::cout << "count = " << count << std::endl;
         if (count >= 0)
@@ -351,7 +351,8 @@ Task<> OpenApi::fix(const HttpRequestPtr req, std::function<void(const HttpRespo
 
     /*template<
         std::size_t Len,
-        std::size_t Align = *//*default-alignment*//*
+        std::size_t Align = */
+    /*default-alignment*/ /*
         >
     struct aligned_storage;
     (since C++11)(deprecated in C++23)*/
