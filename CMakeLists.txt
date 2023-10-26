@@ -26,15 +26,15 @@ endif ()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# 条件判断  -flto   -flto=thin
+# 条件判断  -flto   -flto=thin  -ljemalloc
 if (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
-    set(CMAKE_CXX_FLAGS_DEBUG "-pipe -Wall -O0 -L/usr/local/lib -ljemalloc")
+    set(CMAKE_CXX_FLAGS_DEBUG "-pipe -Wall -O0 -L/usr/local/lib")
     message("Debug mode:${CMAKE_CXX_FLAGS_DEBUG}")
 elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -L/usr/local/lib -ljemalloc")
+    set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -L/usr/local/lib")
     message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
 else ()
-    set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -L/usr/local/lib -ljemalloc")
+    set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -L/usr/local/lib")
     message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
     message("CMAKE_BUILD_TYPE:${CMAKE_BUILD_TYPE}")
 endif ()
@@ -78,7 +78,7 @@ add_executable(
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
 find_package(mimalloc 2.1.2 REQUIRED)
-find_package(Boost 1.82.0 REQUIRED)
+find_package(Boost 1.83.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon Boost::boost mimalloc #[[proto_gen_cxx]])
 
 # ##############################################################################
