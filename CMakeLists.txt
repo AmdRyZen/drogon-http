@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
-SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/gcc-13")
-SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13")
+SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/gcc-11")
+SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/g++-11")
 
 project(drogon-http C CXX)
 
@@ -78,7 +78,7 @@ add_executable(
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
 find_package(mimalloc 2.1.2 REQUIRED)
-find_package(Boost 1.83.0 REQUIRED)
+find_package(Boost 1.84.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon Boost::boost mimalloc #[[proto_gen_cxx]])
 
 # ##############################################################################

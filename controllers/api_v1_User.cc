@@ -75,10 +75,10 @@ Task<> User::getInfo(const HttpRequestPtr req,
             co_await transPtr->execSqlCoro("update f_user set username = ? where id = ? limit 1", "bb", 4);
             //throw std::runtime_error("hahaha");
         }
-        catch (const std::exception& e)
+        catch (const drogon::orm::DrogonDbException& e)
         {
             transPtr->rollback();
-            LOG_ERROR << "update failed: " << e.what();
+            LOG_ERROR << "update failed: " << e.base().what();
         }
         auto result = co_await clientPtr->execSqlCoro("select * from f_user where username != ? order by id asc limit 10 ", "薯条三兄弟");
         auto count = co_await clientPtr->execSqlCoro("select count(1) from f_user where username != ?", "薯条三兄弟");
