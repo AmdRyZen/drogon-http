@@ -31,14 +31,14 @@ class OpenApi : public drogon::HttpController<OpenApi>
 
     static void curlPost(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback);
 
-    static Task<> getValue(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
+    static Task<> getValue(HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
 
-    static Task<> fastJson(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
+    static Task<> fastJson(HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
 
-    static Task<> threadPool(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
+    static Task<> threadPool(HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
 
-    static Task<> fix(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
+    static Task<> fix(HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
 
-    static Task<> random(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
+    static Task<> random(HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
 };
 }  // namespace api::v1

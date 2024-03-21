@@ -26,10 +26,10 @@ class User : public drogon::HttpController<User>
                       std::string&& userId,
                       const std::string& password);
 
-    static Task<> getInfo(const HttpRequestPtr req,
+    static Task<> getInfo(HttpRequestPtr req,
                           std::function<void(const HttpResponsePtr&)> callback,
                           std::string userId,
-                          const std::string token);
+                          std::string token);
 
     static void getBanWord(const HttpRequestPtr& req,
                            std::function<void(const HttpResponsePtr&)>&& callback,
