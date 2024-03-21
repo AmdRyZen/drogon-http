@@ -17,6 +17,7 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/format.hpp>
+#include "utils/aesOpenssl.cpp"
 
 using namespace api::v1;
 using namespace drogon;
@@ -84,6 +85,19 @@ Task<> OpenApi::boost(const HttpRequestPtr req, std::function<void(const HttpRes
 // Add definition of your processing function here
 void OpenApi::curlPost(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback)
 {
+    std::string key_string = "my_secret_key";
+    AESCipher aes(key_string);
+
+    std::string plaintext = "Hello, World!";
+    std::string ciphertext = aes.encrypt(plaintext);
+    std::string decryptedtext = aes.decrypt(ciphertext);
+
+    std::cout << "Plaintext: " << plaintext << std::endl;
+    std::cout << "Ciphertext: " << ciphertext << std::endl;
+    std::cout << "Decryptedtext: " << decryptedtext << std::endl;
+
+
+
     std::string url = "http://127.0.0.1:9090";
     std::string param = "id=222230&bb=xxxxx&cc=6&dd=10000&ip=127.0.0.1&zz=0&ff=11111111";
     std::string aes128Key = "xxxxxxxx";
