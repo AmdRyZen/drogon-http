@@ -4,6 +4,7 @@
 #include "utils/redisUtils.h"
 #include <filesystem>
 #include <fstream>
+#include <vector>
 
 using namespace api::v1;
 
@@ -51,6 +52,33 @@ void User::login(const HttpRequestPtr& req,
     }
 }
 
+struct Condition
+{
+    std::string field;
+    std::string op;
+    std::string value;
+};
+
+struct Result {
+    std::string baseSql;
+    std::vector<std::string> params;
+};
+
+Result buildDynamicQuery(const std::string &baseSql, const std::vector<Condition> &conditions)
+{
+
+    Result result;
+    result.baseSql = baseSql;
+
+    for (const auto &condition : conditions)
+    {
+        result.baseSql += " AND " + condition.field + " " + condition.op + " ?";
+        result.params.push_back(condition.value);
+    }
+
+    return result;
+}
+
 Task<> User::getInfo(const HttpRequestPtr req,
                      std::function<void(const HttpResponsePtr&)> callback,
                      std::string userId,
@@ -67,40 +95,66 @@ Task<> User::getInfo(const HttpRequestPtr req,
 
     try
     {
+        // 基本 SQL 查询语句
+        std::string baseSql = "SELECT * FROM xxl_job_info WHERE 1=1";
+        std::string baseCountSql = "elect count(1) from xxl_job_info WHERE 1=1";
+
+        // 条件参数
+        std::vector<Condition> conditions;
+        conditions.push_back({"author", "!=", "xxx"});
+
+
+        Result resultBase = buildDynamicQuery(baseSql, conditions);
+        Result resultBaseCount = buildDynamicQuery(baseCountSql, conditions);
+        // 构建动态 SQL 查询语句
+        std::string dynamicSql = resultBase.baseSql;
+        std::string dynamicCountSql = resultBaseCount.baseSql;
+
+        std::cout << "dynamicSql: " << dynamicSql << std::endl;
+        std::cout << "dynamicCountSql: " << dynamicCountSql << std::endl;
+        for (const auto& param : resultBase.params)
+            std::cout << "resultBase params: " << param << std::endl;
+
+        for (const auto& param : resultBaseCount.params)
+            std::cout << "resultBaseCount params: " << param << std::endl;
+
+
+
         //co_await clientPtr->execSqlCoro("update f_user set username = ? where id = ? limit 1", "xxxix", 2);
         auto transPtr = co_await clientPtr->newTransactionCoro();
         try
         {
-            co_await transPtr->execSqlCoro("update f_user set username = ? where id = ? limit 1", "aa", 2);
-            co_await transPtr->execSqlCoro("update f_user set username = ? where id = ? limit 1", "bb", 4);
+            co_await transPtr->execSqlCoro("update xxl_job_info set author = ? where id = ? limit 1", "aa", 1);
+            co_await transPtr->execSqlCoro("update xxl_job_info set author = ? where id = ? limit 1", "bb", 2);
             //throw std::runtime_error("hahaha");
         }
         catch (const drogon::orm::DrogonDbException& e)
         {
             transPtr->rollback();
+            std::cout << "update failed: " << e.base().what() << std::endl;
             LOG_ERROR << "update failed: " << e.base().what();
         }
-        auto result = co_await clientPtr->execSqlCoro("select * from f_user where username != ? order by id asc limit 10 ", "薯条三兄弟");
-        auto count = co_await clientPtr->execSqlCoro("select count(1) from f_user where username != ?", "薯条三兄弟");
+        auto result = co_await clientPtr->execSqlCoro(dynamicSql + " order by id asc limit 10 ", "xxx");
+        auto count = co_await clientPtr->execSqlCoro(dynamicSql , "xxx");
         std::for_each(result.begin(), result.end(), [&item, &data](const auto& row) {
-            item["id"] = row["id"].template as<std::int32_t>();
-            item["username"] = row["username"].template as<std::string>();
-            item["phone"] = row["phone"].template as<std::string>();
-            item["avatar"] = row["avatar"].template as<std::string>();
+            item["id"] = row["id"].template as<std::int64_t>();
+            item["author"] = row["author"].template as<std::string>();
+            item["job_desc"] = row["job_desc"].template as<std::string>();
             data.append(item);
             item.clear();
         });
         num_users = count[0][0].as<std::int32_t>();
     }
-    catch (const drogon::orm::DrogonDbException& e)
+    catch (const std::exception& e)
     {
-        std::cerr << "error:" << e.base().what() << std::endl;
+        std::cerr << "error:" << e.what() << std::endl;
     }
 
     std::stringstream command;
-    command << "get "
-            << "aa";
+    command << "get " << "aa";
+
     redis_value = co_await redisUtils::getCoroRedisValue(command.str());
+
 
     //验证token有效性等
     //读数据库或缓存获取用户信息

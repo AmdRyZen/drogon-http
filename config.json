@@ -323,7 +323,7 @@
       //port: Server port, 5432 by default
       "port": 3306,
       //dbname: Database name
-      "dbname": "mysql",
+      "dbname": "xxl_job",
       //user: 'postgres' by default
       "user": "root",
       //passwd: '' by default
