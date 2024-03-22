@@ -34,6 +34,10 @@ std::optional<std::string> redisUtils::getRedisValue(const std::string& command)
 drogon::Task<std::string> redisUtils::getCoroRedisValue(const std::string& command)
 {
     auto redisClient = drogon::app().getFastRedisClient();
-    auto data = co_await redisClient->execCommandCoro(command.c_str());
+    auto data = co_await redisClient->execCommandCoro(command);
+    if (data.isNil())
+    {
+        co_return "null";
+    }
     co_return data.asString();
 }
