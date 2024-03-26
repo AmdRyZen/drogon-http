@@ -4,7 +4,7 @@
 #include "utils/redisUtils.h"
 #include <filesystem>
 #include <fstream>
-#include <vector>
+#include <drogon/drogon.h>
 
 using namespace api::v1;
 
@@ -61,7 +61,7 @@ struct Condition
 
 struct Result {
     std::string baseSql;
-    std::vector<std::string> params;
+    std::vector<std::string> parameters;
 };
 
 Result buildDynamicQuery(const std::string &baseSql, const std::vector<Condition> &conditions)
@@ -69,11 +69,12 @@ Result buildDynamicQuery(const std::string &baseSql, const std::vector<Condition
 
     Result result;
     result.baseSql = baseSql;
+    //std::vector<orm::Field> parameters;
 
     for (const auto &condition : conditions)
     {
         result.baseSql += " AND " + condition.field + " " + condition.op + " ?";
-        result.params.push_back(condition.value);
+        result.parameters.emplace_back(condition.value);
     }
 
     return result;
@@ -112,11 +113,11 @@ Task<> User::getInfo(const HttpRequestPtr req,
 
         std::cout << "dynamicSql: " << dynamicSql << std::endl;
         std::cout << "dynamicCountSql: " << dynamicCountSql << std::endl;
-        for (const auto& param : resultBase.params)
-            std::cout << "resultBase params: " << param << std::endl;
+        for (const auto& param : resultBase.parameters)
+            std::cout << "resultBase params: " << param.c_str() << std::endl;
 
-        for (const auto& param : resultBaseCount.params)
-            std::cout << "resultBaseCount params: " << param << std::endl;
+        for (const auto& param : resultBaseCount.parameters)
+            std::cout << "resultBaseCount params: " << param.c_str() << std::endl;
 
 
 
@@ -134,6 +135,57 @@ Task<> User::getInfo(const HttpRequestPtr req,
             std::cout << "update failed: " << e.base().what() << std::endl;
             LOG_ERROR << "update failed: " << e.base().what();
         }
+
+        std::vector<drogon::orm::Field> params;
+        //params.emplace_back("Alice"); // 字符串参数
+
+        *clientPtr  << "select * from xxl_job_info where author != ? and id = ?"
+            << "xxx" << 1
+            >> [](const drogon::orm::Result &result)
+            {
+                std::cout << result.size() << " rows selected!" << std::endl;
+                int i = 0;
+                for (const auto& row : result)
+                {
+                    std::cout << i++ << ": author is " << row["author"].as<std::string>() << std::endl;
+                }
+            }
+        >> [](const orm::DrogonDbException &e)
+        {
+            std::cerr << "error:" << e.base().what() << std::endl;
+        };
+
+
+        *clientPtr << "select "
+                     "    a.id, "
+                     "    a.user_id, "
+                     "    a.slug, "
+                     "    a.title, "
+                     "    a.description, "
+                     "    a.body, "
+                     "    a.created_at, "
+                     "    a.updated_at "
+                     "from "
+                     "    articles a "
+                     "inner join users u on "
+                     "    a.user_id = u.id "
+                     "where u.username = ?"
+                  << "author"
+                >> [](const drogon::orm::Result &result)
+        {
+            std::cout << result.size() << " rows selected!" << std::endl;
+            int i = 0;
+            for (const auto& row : result)
+            {
+                std::cout << i++ << ": author is " << row["author"].as<std::string>() << std::endl;
+            }
+        }
+            >> [](const orm::DrogonDbException &e)
+        {
+            std::cerr << "error:" << e.base().what() << std::endl;
+        };
+
+
         auto result = co_await clientPtr->execSqlCoro(dynamicSql + " order by id asc limit 10 ", "xxx");
         auto count = co_await clientPtr->execSqlCoro(dynamicSql , "xxx");
         std::for_each(result.begin(), result.end(), [&item, &data](const auto& row) {
