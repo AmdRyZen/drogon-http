@@ -378,10 +378,10 @@ Task<> OpenApi::fix(const HttpRequestPtr req, std::function<void(const HttpRespo
     //std::cout << "attr = " << sizeof(attr) << std::endl;
     std::cout << "__data = " << sizeof(_data) << std::endl;
 
-    auto lhaving = co_await clientPtr->execSqlCoro("select user_id from xxxxx where  original_number != 0 and op_number != 0  group by user_id having count(1) > 1 order by create_time");
-    for (std::size_t n = 0; n < lhaving.size(); ++n)
+    auto v = co_await clientPtr->execSqlCoro("select user_id from xxxxx where  original_number != 0 and op_number != 0  group by user_id having count(1) > 1 order by create_time");
+    for (auto && n : v)
     {
-        auto userId = lhaving[n]["user_id"].template as<std::int32_t>();
+        auto userId = n["user_id"].template as<std::int32_t>();
 
         // ....
         auto result = co_await clientPtr->execSqlCoro("select * from xxxxxxxx where original_number != 0 and op_number != 0 and user_id = ? order by create_time desc", userId);

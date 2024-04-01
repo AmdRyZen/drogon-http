@@ -37,7 +37,7 @@ drogon::Task<std::string> redisUtils::getCoroRedisValue(const std::string& comma
     auto data = co_await redisClient->execCommandCoro(command);
     if (data.isNil())
     {
-        co_return "null";
+        co_return "";
     }
     co_return data.asString();
 }

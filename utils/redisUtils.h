@@ -12,7 +12,7 @@
 class redisUtils
 {
   public:
-    static std::optional<std::string> getRedisValue(const std::string& command);
+    std::optional<std::string> getRedisValue(const std::string& command);
 
     static drogon::Task<std::string> getCoroRedisValue(const std::string& command);
 };
