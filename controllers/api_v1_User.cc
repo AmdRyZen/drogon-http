@@ -2,6 +2,7 @@
 #include "jwt-cpp/base.h"
 #include "jwt-cpp/jwt.h"
 #include "utils/redisUtils.h"
+#include "filters/SqlFilter.h"
 #include <filesystem>
 #include <fstream>
 #include <drogon/drogon.h>
@@ -52,32 +53,15 @@ void User::login(const HttpRequestPtr& req,
     }
 }
 
-struct Condition
+
+
+
+template <typename... Arguments>
+drogon::Task<drogon::orm::Result> dynamicQuery(std::string dynamicSql, Arguments &&...args)
 {
-    std::string field;
-    std::string op;
-    std::string value;
-};
-
-struct Result {
-    std::string baseSql;
-    std::vector<std::string> parameters;
-};
-
-Result buildDynamicQuery(const std::string &baseSql, const std::vector<Condition> &conditions)
-{
-
-    Result result;
-    result.baseSql = baseSql;
-    //std::vector<orm::Field> parameters;
-
-    for (const auto &condition : conditions)
-    {
-        result.baseSql += " AND " + condition.field + " " + condition.op + " ?";
-        result.parameters.emplace_back(condition.value);
-    }
-
-    return result;
+    auto clientPtr = drogon::app().getFastDbClient();
+    auto result = co_await clientPtr->execSqlCoro(dynamicSql + " order by id asc limit 10 ", args...);
+    co_return result;
 }
 
 Task<> User::getInfo(const HttpRequestPtr req,
@@ -98,18 +82,18 @@ Task<> User::getInfo(const HttpRequestPtr req,
     {
         // 基本 SQL 查询语句
         std::string baseSql = "SELECT * FROM xxl_job_info WHERE 1=1";
-        std::string baseCountSql = "elect count(1) from xxl_job_info WHERE 1=1";
+        std::string baseCountSql = "SELECT count(1) FROM xxl_job_info WHERE 1=1";
 
         // 条件参数
-        std::vector<Condition> conditions;
+        std::vector<Condition<std::string>> conditions;
         conditions.push_back({"author", "!=", "xxx"});
+        conditions.push_back({"id", "<", "3"});
 
-
-        Result resultBase = buildDynamicQuery(baseSql, conditions);
-        Result resultBaseCount = buildDynamicQuery(baseCountSql, conditions);
+        DynamicResult resultBase = buildDynamicQuery(baseSql, conditions);
+        DynamicResult resultBaseCount = buildDynamicQuery(baseCountSql, conditions);
         // 构建动态 SQL 查询语句
-        std::string dynamicSql = resultBase.baseSql;
-        std::string dynamicCountSql = resultBaseCount.baseSql;
+        std::string dynamicSql = resultBase.baseSql.str();
+        std::string dynamicCountSql = resultBaseCount.baseSql.str();
 
         std::cout << "dynamicSql: " << dynamicSql << std::endl;
         std::cout << "dynamicCountSql: " << dynamicCountSql << std::endl;
@@ -152,25 +136,19 @@ Task<> User::getInfo(const HttpRequestPtr req,
             }
         >> [](const orm::DrogonDbException &e)
         {
-            std::cerr << "error:" << e.base().what() << std::endl;
+            std::cerr << "error1:" << e.base().what() << std::endl;
         };
 
 
         *clientPtr << "select "
                      "    a.id, "
-                     "    a.user_id, "
-                     "    a.slug, "
-                     "    a.title, "
-                     "    a.description, "
-                     "    a.body, "
-                     "    a.created_at, "
-                     "    a.updated_at "
+                     "    a.author "
                      "from "
-                     "    articles a "
-                     "inner join users u on "
-                     "    a.user_id = u.id "
-                     "where u.username = ?"
-                  << "author"
+                     "    xxl_job_info a "
+                     "inner join xxl_job_info u on "
+                     "    a.id = u.id "
+                     "where u.author = ?"
+                  << "xxx"
                 >> [](const drogon::orm::Result &result)
         {
             std::cout << result.size() << " rows selected!" << std::endl;
@@ -182,12 +160,11 @@ Task<> User::getInfo(const HttpRequestPtr req,
         }
             >> [](const orm::DrogonDbException &e)
         {
-            std::cerr << "error:" << e.base().what() << std::endl;
+            std::cerr << "error2:" << e.base().what() << std::endl;
         };
 
-
-        auto result = co_await clientPtr->execSqlCoro(dynamicSql + " order by id asc limit 10 ", "xxx");
-        auto count = co_await clientPtr->execSqlCoro(dynamicSql , "xxx");
+        auto result = co_await clientPtr->execSqlCoro(dynamicSql);
+        auto count = co_await clientPtr->execSqlCoro(dynamicCountSql);
         std::for_each(result.begin(), result.end(), [&item, &data](const auto& row) {
             item["id"] = row["id"].template as<std::int64_t>();
             item["author"] = row["author"].template as<std::string>();
@@ -199,7 +176,7 @@ Task<> User::getInfo(const HttpRequestPtr req,
     }
     catch (const std::exception& e)
     {
-        std::cerr << "error:" << e.what() << std::endl;
+        std::cerr << "error3:" << e.what() << std::endl;
     }
 
     std::stringstream command;

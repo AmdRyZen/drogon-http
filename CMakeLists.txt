@@ -67,7 +67,8 @@ add_executable(
         utils/aes.h utils/aes.c utils/cipherUtils.h utils/cipherUtils.cpp
         utils/md5Utils.h utils/md5Utils.cpp aop/Application.h
         threadPool/threadPool.h utils/checkloginUtils.h
-        filters/LoginFilter.h utils/printer.h utils/aesOpenssl.cpp)
+        filters/LoginFilter.h utils/printer.h utils/aesOpenssl.cpp
+        filters/SqlFilter.h)
 
 # ##############################################################################
 # If you include the drogon source code locally in your project, use this method
