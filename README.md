@@ -10,6 +10,8 @@
 
 drogon-http
 
+cppcheck /github/drogon-http --enable=information
+
 gcc-13 -Q --help=optimizers -Ofast
 
 set(COMPILATION_FLAGS "-pipe -w -Ofast -fomit-frame-pointer -march=native -flto -L/usr/local/lib -ljemalloc")

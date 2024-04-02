@@ -17,6 +17,7 @@ class OpenApi : public drogon::HttpController<OpenApi>
     METHOD_ADD(OpenApi::threadPool, "/threadPool", Get);
     METHOD_ADD(OpenApi::fix, "/fix", Get);
     METHOD_ADD(OpenApi::random, "/random", Get);
+    METHOD_ADD(OpenApi::taskflow, "/taskFlow", Get);
     // use METHOD_ADD to add your custom processing function here;
     // METHOD_ADD(OpenApi::get, "/{2}/{1}", Get); // path is /api/v1/OpenApi/{arg2}/{arg1}
     // METHOD_ADD(OpenApi::your_method_name, "/{1}/{2}/list", Get); // path is /api/v1/OpenApi/{arg1}/{arg2}/list
@@ -40,5 +41,7 @@ class OpenApi : public drogon::HttpController<OpenApi>
     static Task<> fix(HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
 
     static Task<> random(HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
+
+    static Task<> taskflow(HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
 };
 }  // namespace api::v1

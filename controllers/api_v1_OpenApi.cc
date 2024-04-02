@@ -18,6 +18,7 @@
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/format.hpp>
 #include "utils/aesOpenssl.cpp"
+#include <boost/multiprecision/cpp_dec_float.hpp>
 
 using namespace api::v1;
 using namespace drogon;
@@ -35,13 +36,39 @@ void printerFunc()
     io.run();
 }
 
+namespace mp = boost::multiprecision;
+
 Task<> OpenApi::boost(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
     std::cout << BOOST_LIB_VERSION << std::endl;
     std::cout << BOOST_VERSION << std::endl;
 
+    // 定义两个高精度的十进制浮点数
+    mp::cpp_dec_float_100 a("123.456789");
+    mp::cpp_dec_float_100 b("987.654321");
+
+    // 加法
+    mp::cpp_dec_float_100 sum = a + b;
+    std::cout << "Sum: " << sum << std::endl;
+
+    // 减法
+    mp::cpp_dec_float_100 diff = a - b;
+    std::cout << "Difference: " << diff << std::endl;
+
+    // 乘法
+    mp::cpp_dec_float_100 prod = a * b;
+    std::cout << "Product: " << prod << std::endl;
+
+    // 除法
+    mp::cpp_dec_float_100 quot = a / b;
+    std::cout << "Quotient: " << quot << std::endl;
+
+
+    std::cout << "multiprecision end : ------------------" << std::endl;
+
     // std::async函数启动一个异步任务，传入func1和一个int值作为参数
-    std::future<void> f = std::async(printerFunc);
+    //std::future<void> f = std::async(printerFunc);
+
     // 在主线程中做一些其他事情
     std::cout << "Doing something else in main thread." << std::endl;
 
@@ -451,6 +478,103 @@ Task<> OpenApi::random(const HttpRequestPtr req, std::function<void(const HttpRe
         std::cout << item << std::endl;
     });
     value.clear();
+
+    Json::Value ret;
+    ret["msg"] = "ok";
+    co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
+}
+
+Task<> OpenApi::taskflow(HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
+{
+    tf::Executor executor;
+    tf::Taskflow taskflow;
+
+    // 创建两个计数器
+    int count1 = 0;
+    int count2 = 0;
+
+    // 创建一个循环，执行 5 次
+    auto loop = taskflow.emplace([&count1, &count2](){
+                            std::cout << "Loop iteration " << count1 << std::endl;
+                            count1++;
+                        }).name("loop");
+
+    // 创建一个条件任务，当 count2 小于 3 时执行
+    auto condition = taskflow.emplace([&count2](){
+                                 std::cout << "Condition check " << count2 << std::endl;
+                                 count2++;
+                                 return count2 < 3;
+                             }).name("condition");
+
+    // 设置任务之间的依赖关系
+    condition.precede(loop);
+    //condition.succeed(loop, std::ranges::any_of);
+
+    // 执行任务流
+    executor.run(taskflow).wait();
+
+    std::cout << "-----------------" << std::endl;
+
+
+    auto [A, B, C, D] = taskflow.emplace(  // create four tasks
+        [] () { std::cout << "TaskA\n"; },
+        [] () { std::cout << "TaskB\n"; },
+        [] () { std::cout << "TaskC\n"; },
+        [] () { std::cout << "TaskD\n"; }
+    );
+
+    A.precede(B, C);  // A runs before B and C
+    D.succeed(B, C);  // D runs after  B and C
+
+    executor.run(taskflow).wait();
+
+
+
+    tf::Task A1 = taskflow.emplace([](){}).name("A");
+    tf::Task C1 = taskflow.emplace([](){}).name("C");
+    tf::Task D1 = taskflow.emplace([](){}).name("D");
+
+    tf::Task B1 = taskflow.emplace([] (tf::Subflow& subflow) { // subflow task B
+                             tf::Task B1 = subflow.emplace([](){}).name("B1");
+                             tf::Task B2 = subflow.emplace([](){}).name("B2");
+                             tf::Task B3 = subflow.emplace([](){}).name("B3");
+                             B3.succeed(B1, B2);  // B3 runs after B1 and B2
+                         }).name("B");
+
+    A1.precede(B1, C1);  // A runs before B and C
+    D1.succeed(B1, C1);  // D runs after  B and C
+
+
+
+    tf::Task init = taskflow.emplace([](){}).name("init");
+    tf::Task stop = taskflow.emplace([](){}).name("stop");
+
+    // creates a condition task that returns a random binary
+    tf::Task cond = taskflow.emplace([](){ return std::rand() % 2; }).name("cond");
+
+    // creates a feedback loop {0: cond, 1: stop}
+    init.precede(cond);
+    cond.precede(cond, stop);  // moves on to 'cond' on returning 0, or 'stop' on 1
+
+
+
+
+    // create asynchronous tasks directly from an executor
+    std::future<int> future = executor.async([](){
+        std::cout << "async task returns 1\n";
+        return 1;
+    });
+    executor.silent_async([](){ std::cout << "async task does not return\n"; });
+
+    // create asynchronous tasks with dynamic dependencies
+    tf::AsyncTask A2 = executor.silent_dependent_async([](){ printf("A\n"); });
+    tf::AsyncTask B2 = executor.silent_dependent_async([](){ printf("B\n"); }, A2);
+    tf::AsyncTask C2 = executor.silent_dependent_async([](){ printf("C\n"); }, A2);
+    tf::AsyncTask D2 = executor.silent_dependent_async([](){ printf("D\n"); }, B2, C2);
+
+    executor.wait_for_all();
+
+
 
     Json::Value ret;
     ret["msg"] = "ok";
