@@ -27,10 +27,10 @@ class SqlFilter
     SqlFilter() = default;
 
 
-    static bool FilteredSQLInject(const std::string& str);
+    [[gnu::always_inline]] inline static bool FilteredSQLInject(const std::string& str);
 };
 
-bool SqlFilter::FilteredSQLInject(const std::string& str) {
+inline bool SqlFilter::FilteredSQLInject(const std::string& str) {
     if (str.empty()) {
         return false;
     }
