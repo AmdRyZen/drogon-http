@@ -6,8 +6,13 @@
 #include <filesystem>
 #include <fstream>
 #include <drogon/drogon.h>
+#include "models/XxlJobInfo.h"
+#include <drogon/orm/Mapper.h>
 
 using namespace api::v1;
+using namespace drogon_model::xxl_job;
+using namespace drogon::orm;
+using namespace drogon;
 
 //add definition of your processing function here
 void User::login(const HttpRequestPtr& req,
@@ -52,9 +57,6 @@ void User::login(const HttpRequestPtr& req,
         return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
     }
 }
-
-
-
 
 template <typename... Arguments>
 drogon::Task<drogon::orm::Result> dynamicQuery(std::string dynamicSql, Arguments &&...args)
@@ -165,6 +167,7 @@ Task<> User::getInfo(const HttpRequestPtr req,
 
         auto result = co_await clientPtr->execSqlCoro(dynamicSql);
         auto count = co_await clientPtr->execSqlCoro(dynamicCountSql);
+
         std::for_each(result.begin(), result.end(), [&item, &data](const auto& row) {
             item["id"] = row["id"].template as<std::int64_t>();
             item["author"] = row["author"].template as<std::string>();
@@ -173,6 +176,42 @@ Task<> User::getInfo(const HttpRequestPtr req,
             item.clear();
         });
         num_users = count[0][0].as<std::int32_t>();
+
+        auto aa = Criteria(XxlJobInfo::Cols::_id, CompareOperator::LE, 1);
+        std::cout << "XxlJobInfo: " << aa.criteriaString() << std::endl;
+
+        // 构建查询条件
+        auto criteria = Criteria(XxlJobInfo::Cols::_id, CompareOperator::EQ, 1) && Criteria(XxlJobInfo::Cols::_author, CompareOperator::EQ, "aa");
+        std::cout << "criteria sql : " << "SELECT * FROM xxl_job_info WHERE " + criteria.criteriaString() << std::endl;
+
+        // 创建SqlBinder对象
+        std::string sql = "SELECT * FROM xxl_job_info WHERE id = ? and author = ?";
+        auto nn = *clientPtr << sql;
+        std::vector<std::string> values = {"1", "aa"};
+        for (const auto &value : values)
+        {
+            nn << value;
+        }
+        nn >> [](const Result &r) {
+            std::cout << "r.affectedRows() : " << r.affectedRows() << std::endl;
+        };
+
+
+        std::string sql1 = "SELECT * FROM xxl_job_info WHERE id = 1 and author = 'aa'";
+        auto zz = clientPtr->execSqlCoro(sql1);
+        for (const auto &value : values)
+        {
+            //co_await (*zz) << value;
+        }
+
+        auto r = co_await zz;
+        std::cout << "Affected rows: " << r.affectedRows() << std::endl;
+       /* Mapper<XxlJobInfo> mp(clientPtr);
+        mp.findBy(criteria);*/
+
+        // 执行查询
+        /*auto xxx = co_await clientPtr->execSqlCoro("SELECT * FROM xxl_job_info WHERE " + criteria.criteriaString());
+        std::cout << "xxx: " << xxx.size() << std::endl;*/
     }
     catch (const std::exception& e)
     {
