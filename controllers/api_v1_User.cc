@@ -199,10 +199,10 @@ Task<> User::getInfo(const HttpRequestPtr req,
 
         std::string sql1 = "SELECT * FROM xxl_job_info WHERE id = 1 and author = 'aa'";
         auto zz = clientPtr->execSqlCoro(sql1);
-        for (const auto &value : values)
+        /*for (const auto &value : values)
         {
-            //co_await (*zz) << value;
-        }
+            co_await (*zz) << value;
+        }*/
 
         auto r = co_await zz;
         std::cout << "Affected rows: " << r.affectedRows() << std::endl;
