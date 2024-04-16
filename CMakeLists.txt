@@ -54,7 +54,7 @@ add_subdirectory(proto)
 #include_directories(${PROTO_GEN_C_INCLUDE_DIRS}) # c
 include_directories(${PROTO_GEN_CXX_INCLUDE_DIRS}) # cpp
 
-set(MODEL_SOURCES
+#[[set(MODEL_SOURCES
         models/XxlJobGroup.h  models/XxlJobGroup.cc
         models/XxlJobInfo.h  models/XxlJobInfo.cc
         models/XxlJobLock.h  models/XxlJobLock.cc
@@ -63,7 +63,7 @@ set(MODEL_SOURCES
         models/XxlJobLogReport.h  models/XxlJobLogReport.cc
         models/XxlJobRegistry.h  models/XxlJobRegistry.cc
         models/XxlJobUser.h  models/XxlJobUser.cc
-)
+)]]
 
 
 add_executable(
@@ -81,7 +81,7 @@ add_executable(
         threadPool/threadPool.h utils/checkloginUtils.h
         filters/LoginFilter.h utils/printer.h utils/aesOpenssl.cpp
         filters/SqlFilter.h
-        ${MODEL_SOURCES})
+        #[[${MODEL_SOURCES}]])
 
 # ##############################################################################
 # If you include the drogon source code locally in your project, use this method

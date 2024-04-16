@@ -19,11 +19,19 @@
 #include <boost/format.hpp>
 #include "utils/aesOpenssl.cpp"
 #include <boost/multiprecision/cpp_dec_float.hpp>
+#if defined(__arm__) || defined(__aarch64__)
+    #include <arm_neon.h>
+#else
+    // 在非 ARM 架构上包含其他头文件，例如 <emmintrin.h>（SSE2 指令集的头文件）
+    #include <emmintrin.h>
+#endif
+
 
 using namespace api::v1;
 using namespace drogon;
 using json = nlohmann::json;
 using namespace boost::gregorian;
+namespace mp = boost::multiprecision;
 
 void printerFunc()
 {
@@ -36,7 +44,31 @@ void printerFunc()
     io.run();
 }
 
-namespace mp = boost::multiprecision;
+
+
+Task<> OpenApi::simd(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
+{
+
+    // 定义两个 NEON 整型向量
+    int32x4_t a = {1, 2, 3, 4};
+    int32x4_t b = {5, 6, 7, 8};
+
+    // 执行向量加法操作
+    int32x4_t result = vaddq_s32(a, b);
+
+    // 将结果转换为标准整型数组
+    int32_t res[4];
+    vst1q_s32(res, result);
+
+    // 打印结果
+    std::cout << res[0] << " " << res[1] << " " << res[2] << " " << res[3] << std::endl;
+
+    Json::Value ret;
+    ret["msg"] = "ok";
+    ret["code"] = 200;
+    ret["res"] = res;
+    co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
+}
 
 Task<> OpenApi::boost(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
@@ -235,7 +267,10 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     root["id"] = 1;
     root["name"] = "b";
     auto t3 = std::chrono::steady_clock::now();
-    auto cppjson_content = root.toStyledString();
+    for (auto i = 0; i < 1000; i++)
+    {
+        root.toStyledString();
+    }
     auto t4 = std::chrono::steady_clock::now();
     //纳秒级
     double dr_ns1 = std::chrono::duration<double, std::nano>(t4 - t3).count();
