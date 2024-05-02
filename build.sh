@@ -22,7 +22,7 @@ function build_drogon()
     mkdir $build_dir
 
     echo "Entering folder: ${build_dir}"
-    cd $build_dir
+    cd $build_dir || exit
 
     echo "Start building ..."
     if [ $1 -eq 1 ]; then
@@ -34,14 +34,18 @@ function build_drogon()
     fi
 
     #If errors then exit
+    # shellcheck disable=SC2181
     if [ "$?" != "0" ]; then
+        # shellcheck disable=SC2242
         exit -1
     fi
 
     $make_program $make_flags
 
     #If errors then exit
+    # shellcheck disable=SC2181
     if [ "$?" != "0" ]; then
+        # shellcheck disable=SC2242
         exit -1
     fi
 
@@ -49,13 +53,14 @@ function build_drogon()
     #sudo $make_program install
 
     #Go back to the current directory
-    cd $current_dir
+    cd $current_dir || exit
 
     echo "Starting ..."
     $build_dir/drogon-http
     #Ok!
 }
 
+# shellcheck disable=SC2209
 make_program=make
 make_flags=''
 cmake_gen=''
@@ -74,6 +79,7 @@ case $(uname) in
 esac
 
 # simulate ninja's parallelism
+# shellcheck disable=SC2194
 case nproc in
  1)
     parallel=$(( nproc + 1 ))

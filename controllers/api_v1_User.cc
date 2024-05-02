@@ -173,7 +173,6 @@ Task<> User::getInfo(const HttpRequestPtr req,
             item["author"] = row["author"].template as<std::string>();
             item["job_desc"] = row["job_desc"].template as<std::string>();
             data.append(item);
-            item.clear();
         });
         num_users = count[0][0].as<std::int32_t>();
 
@@ -265,13 +264,13 @@ void User::getBanWord(const HttpRequestPtr& req,
         "Qq",
     };
 
-    std::for_each(words.begin(), words.end(), [&](const auto& item) {
-        auto t1 = std::chrono::steady_clock::now();
+    std::ranges::for_each(words.begin(), words.end(), [&](const auto& item) {
+        auto const t1 = std::chrono::steady_clock::now();
 
-        std::wstring result = trieService.replaceSensitive(SbcConvertService::s2ws(item));
+        std::wstring const result = trieService.replaceSensitive(SbcConvertService::s2ws(item));
 
-        auto t2 = std::chrono::steady_clock::now();
-        double dr_ms = std::chrono::duration<double, std::milli>(t2 - t1).count();
+        auto const t2 = std::chrono::steady_clock::now();
+        double const dr_ms = std::chrono::duration<double, std::milli>(t2 - t1).count();
         std::cout << "[cost: " << dr_ms << " ms]" << item << " => " << SbcConvertService::ws2s(result) << std::endl;
     });
 

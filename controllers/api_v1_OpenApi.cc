@@ -7,8 +7,8 @@
 #include "rapidjson/writer.h"
 #include "service/SbcConvertService.h"
 #include "threadPool/threadPool.h"
-#include "utils/cipherUtils.h"
-#include "utils/md5Utils.h"
+/*#include "utils/cipherUtils.h"
+#include "utils/md5Utils.h"*/
 #include "utils/redisUtils.h"
 #include <drogon/HttpClient.h>
 #include <taskflow/taskflow.hpp>  // Taskflow is header-only
@@ -173,7 +173,7 @@ Task<> OpenApi::boost(const HttpRequestPtr req, std::function<void(const HttpRes
 void OpenApi::curlPost(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback)
 {
     std::string key_string = "my_secret_key";
-    AESCipher aes(key_string);
+    /*AESCipher aes(key_string);
 
     std::string plaintext = "Hello, World!";
     std::string ciphertext = aes.encrypt(plaintext);
@@ -181,7 +181,7 @@ void OpenApi::curlPost(const HttpRequestPtr& req, std::function<void(const HttpR
 
     std::cout << "Plaintext: " << plaintext << std::endl;
     std::cout << "Ciphertext: " << ciphertext << std::endl;
-    std::cout << "Decryptedtext: " << decryptedtext << std::endl;
+    std::cout << "Decryptedtext: " << decryptedtext << std::endl;*/
 
 
 
@@ -191,15 +191,15 @@ void OpenApi::curlPost(const HttpRequestPtr& req, std::function<void(const HttpR
 
     auto client = drogon::HttpClient::newHttpClient(url);
     // aes
-    std::string encryptedText = cipherUtils::encrypt_cbc(SbcConvertService::ws2s(SbcConvertService::s2ws(param)), aes128Key, aes128Key);
+    /*std::string encryptedText = cipherUtils::encrypt_cbc(SbcConvertService::ws2s(SbcConvertService::s2ws(param)), aes128Key, aes128Key);
     std::cout << "encryptedText = " << encryptedText << std::endl;
     const std::string& pwd = cipherUtils::decrypt_cbc(encryptedText, aes128Key, aes128Key);
-    std::cout << "pwd = " << pwd << std::endl;
+    std::cout << "pwd = " << pwd << std::endl;*/
 
     // md5
-    unsigned char encrypt[] = "id=1111&timestamp=1638263374&key=xxxxx";
-    unsigned char decrypt[16];
-    MD5_CTX md5;
+    /*unsigned char encrypt[] = "id=1111&timestamp=1638263374&key=xxxxx";
+    unsigned char decrypt[16];*/
+    /*MD5_CTX md5;
     md5Utils::MD5Init(&md5);
     md5Utils::MD5Update(&md5, encrypt, (int)strlen((char*)encrypt));
     md5Utils::MD5Final(&md5, decrypt);
@@ -207,12 +207,12 @@ void OpenApi::curlPost(const HttpRequestPtr& req, std::function<void(const HttpR
     {
         printf("%02x", i);
     }
-    std::cout << std::endl;
+    std::cout << std::endl;*/
 
     Json::Value params;
     params["channelId"] = "1111111111";
     params["timestamp"] = "1638263374";
-    params["param"] = encryptedText;
+    params["param"] = "encryptedText";
     params["sign"] = "8482024d6c64fe364873725ea0e19008";
 
     std::cout << "__params = " << params.toStyledString() << std::endl;
@@ -533,11 +533,11 @@ Task<> OpenApi::random(const HttpRequestPtr req, std::function<void(const HttpRe
     }
     std::cout << std::endl;
 
-    auto result = std::minmax_element(value.begin(), value.end());
+    auto const result = std::minmax_element(value.begin(), value.end());
     std::cout << "min element at: " << *(result.first) << std::endl;
     std::cout << "max element at: " << *(result.second) << std::endl;
-    std::sort(value.begin(), value.end());
-    std::for_each(value.begin(), value.end(), [&](const auto& item) {
+    std::ranges::sort(value.begin(), value.end());
+    std::ranges::for_each(value.begin(), value.end(), [&](const auto& item) {
         std::cout << item << std::endl;
     });
     value.clear();

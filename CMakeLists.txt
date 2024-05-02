@@ -6,13 +6,13 @@ SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/g++-11")
 #[[SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/gcc-13")
 SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13")]]
 
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-generate=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
-
 project(drogon-http C CXX)
+
+# 开启数据收集模式（Debug 模式）
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-generate")
+
+# 关闭数据收集模式（Release 模式），同时开启优化
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-use")
 
 include(CheckIncludeFileCXX)
 
@@ -51,10 +51,10 @@ elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use")
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
-        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -ffast-math -march=native -mtune=native -fomit-frame-pointer -freorder-blocks -fweb -fno-stack-protector  -finline-functions -fomit-frame-pointer -funroll-loops -L/usr/local/lib -DARM_ARCH -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -ffast-math -march=native -mtune=native -fomit-frame-pointer -freorder-blocks -fweb -fno-stack-protector  -finline-functions -fomit-frame-pointer -funroll-loops -L/usr/local/lib -DARM_ARCH")
         message("Release mode for ARM:${CMAKE_CXX_FLAGS_RELEASE}")
     elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86")
-        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -L/usr/local/lib -DX86_ARCH -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -L/usr/local/lib -DX86_ARCH")
         message("Release mode for x86:${CMAKE_CXX_FLAGS_RELEASE}")
     else()
         message(FATAL_ERROR "Unsupported architecture")
@@ -102,13 +102,16 @@ add_executable(
         ws_controllers/EchoWebsocket.h ws_controllers/EchoWebsocket.cc
         service/SbcConvertService.h service/impl/SbcConvertServiceImpl.cpp
         service/TrieService.h service/impl/TrieServiceImpl.cpp
-        utils/base64Utils.h utils/base64Utils.c
-        utils/aes.h utils/aes.c utils/cipherUtils.h utils/cipherUtils.cpp
-        utils/md5Utils.h utils/md5Utils.cpp aop/Application.h
+        #utils/base64Utils.h utils/base64Utils.c
+        #utils/aes.h utils/aes.c
+        #utils/cipherUtils.h utils/cipherUtils.cpp
+        #utils/md5Utils.h utils/md5Utils.cpp
+        aop/Application.h
         threadPool/threadPool.h utils/checkloginUtils.h
         filters/LoginFilter.h utils/printer.h utils/aesOpenssl.cpp
         filters/SqlFilter.h
         #[[${MODEL_SOURCES}]])
+
 
 # ##############################################################################
 # If you include the drogon source code locally in your project, use this method
@@ -119,7 +122,7 @@ add_executable(
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
 find_package(mimalloc 2.1.4 REQUIRED)
-find_package(Boost 1.84.0 REQUIRED)
+find_package(Boost 1.85.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon Boost::boost mimalloc #[[proto_gen_cxx]])
 
 # ##############################################################################
