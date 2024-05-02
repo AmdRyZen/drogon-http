@@ -3,6 +3,8 @@
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
 #include "service/SbcConvertService.h"
 #include "threadPool/threadPool.h"
 #include "utils/cipherUtils.h"
@@ -32,6 +34,7 @@ using namespace drogon;
 using json = nlohmann::json;
 using namespace boost::gregorian;
 namespace mp = boost::multiprecision;
+using namespace rapidjson;
 
 void printerFunc()
 {
@@ -63,11 +66,36 @@ Task<> OpenApi::simd(const HttpRequestPtr req, std::function<void(const HttpResp
     // 打印结果
     std::cout << res[0] << " " << res[1] << " " << res[2] << " " << res[3] << std::endl;
 
-    Json::Value ret;
-    ret["msg"] = "ok";
-    ret["code"] = 200;
-    ret["res"] = res;
-    co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
+    // 创建一个 StringBuffer 和 PrettyWriter
+    StringBuffer buffer;
+    PrettyWriter<StringBuffer> writer(buffer);
+
+    // 开始对象
+    writer.StartObject();
+
+    // 添加其他键值对
+    writer.Key("code");
+    writer.Int(200);
+    writer.Key("msg");
+    writer.String("ok");
+
+    // 添加 res 键和值
+    writer.Key("res");
+    writer.StartArray();
+    for (int const re : res) {
+        writer.Int(re);
+    }
+    writer.EndArray();
+
+    // 结束对象
+    writer.EndObject();
+
+    // 返回响应
+    auto const resp = HttpResponse::newHttpResponse();
+    resp->setContentTypeCodeAndCustomString(CT_APPLICATION_JSON, "utf-8");
+    resp->setBody(buffer.GetString());
+    co_return callback(resp);
+    //co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
 }
 
 Task<> OpenApi::boost(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)

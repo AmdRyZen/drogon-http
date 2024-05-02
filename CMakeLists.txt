@@ -3,6 +3,16 @@ cmake_minimum_required(VERSION 3.20)
 SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/gcc-11")
 SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/g++-11")
 
+#[[SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/gcc-13")
+SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13")]]
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-generate")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate")
+
+
 project(drogon-http C CXX)
 
 include(CheckIncludeFileCXX)
@@ -23,18 +33,36 @@ else ()
     set(CMAKE_CXX_STANDARD 23)
 endif ()
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
+    add_compile_options(-DARM_ARCH)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86")
+    add_compile_options(-DX86_ARCH)
+endif()
+
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# 条件判断  -flto   -flto=thin  -ljemalloc
+# 条件判断  -flto   -flto=thin  -ljemalloc -mfpu=neon
 if (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
     set(CMAKE_CXX_FLAGS_DEBUG "-pipe -Wall -O0 -L/usr/local/lib")
     message("Debug mode:${CMAKE_CXX_FLAGS_DEBUG}")
 elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -ffast-math -march=native -mtune=native -fomit-frame-pointer -freorder-blocks -fweb -fno-stack-protector  -finline-functions -fomit-frame-pointer -funroll-loops -L/usr/local/lib")
-    message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use")
+
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -ffast-math -march=native -mtune=native -fomit-frame-pointer -freorder-blocks -fweb -fno-stack-protector  -finline-functions -fomit-frame-pointer -funroll-loops -L/usr/local/lib -DARM_ARCH -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
+        message("Release mode for ARM:${CMAKE_CXX_FLAGS_RELEASE}")
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86")
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -L/usr/local/lib -DX86_ARCH -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
+        message("Release mode for x86:${CMAKE_CXX_FLAGS_RELEASE}")
+    else()
+        message(FATAL_ERROR "Unsupported architecture")
+    endif()
+
 else ()
-    set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -L/usr/local/lib")
+    set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -L/usr/local/lib")
     message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
     message("CMAKE_BUILD_TYPE:${CMAKE_BUILD_TYPE}")
 endif ()
@@ -91,7 +119,7 @@ add_executable(
 #
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
-find_package(mimalloc 2.1.2 REQUIRED)
+find_package(mimalloc 2.1.4 REQUIRED)
 find_package(Boost 1.84.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon Boost::boost mimalloc #[[proto_gen_cxx]])
 
