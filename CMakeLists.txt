@@ -6,12 +6,11 @@ SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/g++-11")
 #[[SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/gcc-13")
 SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13")]]
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-generate")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate")
-
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-generate=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable.gcda")
 
 project(drogon-http C CXX)
 
