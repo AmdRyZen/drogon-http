@@ -8,11 +8,30 @@ SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13")]]
 
 project(drogon-http C CXX)
 
-# 开启数据收集模式（Debug 模式）
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-generate")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use")
+
+
+#[[# 开启数据收集模式
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fprofile-generate")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-generate")
 
-# 关闭数据收集模式（Release 模式），同时开启优化
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-use")
+# 开启数据使用模式
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fprofile-use")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-use")]]
+
+# 开启数据收集模式（Release 模式）
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-generate")
+
+# 开启数据使用模式（Release 模式）
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-use")
+
 
 include(CheckIncludeFileCXX)
 
@@ -47,9 +66,6 @@ if (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
     set(CMAKE_CXX_FLAGS_DEBUG "-pipe -Wall -O0 -L/usr/local/lib")
     message("Debug mode:${CMAKE_CXX_FLAGS_DEBUG}")
 elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use")
-
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
         set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -ffast-math -march=native -mtune=native -fomit-frame-pointer -freorder-blocks -fweb -fno-stack-protector  -finline-functions -fomit-frame-pointer -funroll-loops -L/usr/local/lib -DARM_ARCH")
         message("Release mode for ARM:${CMAKE_CXX_FLAGS_RELEASE}")
