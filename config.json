@@ -1,7 +1,7 @@
 
 {
   "app": {
-    "number_of_threads": 16,
+    "number_of_threads": 8,
     "enable_session": false,
     "session_timeout": 0,
     "document_root": "./",
@@ -54,7 +54,7 @@
     "relaunch_on_error": false,
     "use_sendfile": true,
     "use_gzip": true,
-    "use_brotli": false,
+    "use_brotli": true,
     "static_files_cache_time": 5,
     "simple_controllers_map": [
       {

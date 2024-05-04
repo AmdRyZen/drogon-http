@@ -5,13 +5,18 @@ using namespace App;
 
 int main()
 {
-    App::Application().initialization();
+    try
+    {
+        App::Application().initialization();
 
+        // 注册 GzipFilter 插件
+        drogon::app().enableGzip(true);
 
-    // 注册 GzipFilter 插件
-    drogon::app().enableGzip(true);
+        drogon::app().loadConfigFile("config.json").run();
 
-    drogon::app().loadConfigFile("config.json").run();
-
+    } catch (const std::exception& e)
+    {
+        std::cout << "Application: err  " << e.what() << std::endl;
+    }
     return 0;
 }

@@ -17,7 +17,7 @@ class DROGON_EXPORT LoginFilter : public HttpFilter<LoginFilter>
   public:
     LoginFilter() = default;
 
-    void doFilter(const HttpRequestPtr& req,
+    [[gnu::always_inline]] inline void doFilter(const HttpRequestPtr& req,
                   FilterCallback&& fcb,
                   FilterChainCallback&& fccb) override;
 };

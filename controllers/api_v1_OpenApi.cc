@@ -3,12 +3,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "service/SbcConvertService.h"
 #include "threadPool/threadPool.h"
-/*#include "utils/cipherUtils.h"
-#include "utils/md5Utils.h"*/
 #include "utils/redisUtils.h"
 #include <drogon/HttpClient.h>
 #include <taskflow/taskflow.hpp>  // Taskflow is header-only
@@ -19,8 +14,14 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/format.hpp>
-#include "utils/aesOpenssl.cpp"
+#include "utils/aesOpenssl.h"
 #include <boost/multiprecision/cpp_dec_float.hpp>
+#include <openssl/evp.h>
+#include <openssl/buffer.h>
+#include <boost/uuid/detail/md5.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <openssl/sha.h>
+
 #if defined(__arm__) || defined(__aarch64__)
     #include <arm_neon.h>
 #else
@@ -47,14 +48,84 @@ void printerFunc()
     io.run();
 }
 
+std::string sha3_256(const std::string& input) {
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_CTX sha3_ctx;
+    EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
+
+    EVP_DigestInit_ex(mdctx, EVP_sha256(), nullptr);
+    EVP_DigestUpdate(mdctx, input.c_str(), input.length());
+    EVP_DigestFinal_ex(mdctx, hash, nullptr);
+
+    EVP_MD_CTX_free(mdctx);
+
+    std::stringstream ss;
+    for (unsigned char i : hash) {
+        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(i);
+    }
+    return ss.str();
+}
+
+std::string md5(const std::string& input) {
+    boost::uuids::detail::md5 md5;
+    md5.process_bytes(input.data(), input.length());
+    boost::uuids::detail::md5::digest_type digest;
+    md5.get_digest(digest);
+
+    // 转换为16进制字符串
+    std::stringstream ss;
+    for (auto byte : digest) {
+        ss << std::hex << std::setw(2) << static_cast<int>(byte);
+    }
+    return ss.str();
+}
+
+Task<> OpenApi::aes(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
+{
+    std::string encrypted;
+    std::string decrypted;
+    try
+    {
+        const std::string input = "qwer1234";
+
+        const std::string hash = sha3_256(input);
+        std::cout << "SHA-256 Hash: " << hash << std::endl;
+
+        // 不建议使用md5
+        /*const std::string md5_hash = md5(input);
+        std::cout << "MD5 Hash: " << md5_hash << std::endl;*/
+
+
+        const std::string keyHex = "0123456789abcdef0123456789abcdef";
+        const std::string ivHex = "0123456789abcdef0123456789abcdef";
+        const std::string plaintext = "谢谢谢谢谢寻寻👀👀👀👀你好啊👀👀xxxx";
+
+        encrypted = aesOpenssl::AesCBCPk5EncryptBase64(plaintext, keyHex, ivHex);
+        //std::cout << "Encrypted: " << encrypted << std::endl;
+
+        decrypted = aesOpenssl::AesCBCPk5DecryptBase64(encrypted, keyHex, ivHex);
+        //std::cout << "Decrypted: " << decrypted << std::endl;
+
+    } catch (const std::exception& e)
+    {
+        std::cout << "aes: err  " << e.what() << std::endl;
+    }
+
+    Json::Value ret;
+    ret["msg"] = "ok";
+    ret["code"] = 200;
+    ret["Encrypted"] = encrypted;
+    ret["Decrypted"] = decrypted;
+    co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
+}
 
 
 Task<> OpenApi::simd(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
 
     // 定义两个 NEON 整型向量
-    int32x4_t a = {1, 2, 3, 4};
-    int32x4_t b = {5, 6, 7, 8};
+    constexpr int32x4_t a = {1, 2, 3, 4};
+    constexpr int32x4_t b = {5, 6, 7, 8};
 
     // 执行向量加法操作
     int32x4_t result = vaddq_s32(a, b);
@@ -98,10 +169,43 @@ Task<> OpenApi::simd(const HttpRequestPtr req, std::function<void(const HttpResp
     //co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
 }
 
+// 不会丢失精度
+void add_arrays(const mp::cpp_dec_float_100* a, const mp::cpp_dec_float_100* b, mp::cpp_dec_float_100* result, const int size) {
+    for (int i = 0; i < size; ++i) {
+        result[i] = a[i] + b[i];
+    }
+}
+
+#define ARRAY_SIZE 4
 Task<> OpenApi::boost(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
     std::cout << BOOST_LIB_VERSION << std::endl;
     std::cout << BOOST_VERSION << std::endl;
+
+
+    mp::cpp_dec_float_100 a1[ARRAY_SIZE] = {1.1, 2.2, 3.3, 4.4};
+    mp::cpp_dec_float_100 b1[ARRAY_SIZE] = {5.5, 6.6, 7.7, 8.8};
+    mp::cpp_dec_float_100 result[ARRAY_SIZE];
+
+    add_arrays(a1, b1, result, ARRAY_SIZE);
+
+    std::cout << "Result:" << std::endl;
+    for (const auto & i : result) {
+        std::cout <<  std::fixed << std::setprecision(2) << i << "； ";
+    }
+    std::cout << std::endl;
+
+
+
+    // 定义固定精度的十进制浮点数，精度为100位
+    mp::cpp_dec_float_100 money("123.456789");
+
+    // 进行计算
+    money += 10; // 加上10元
+
+    // 设置输出格式并输出结果
+    std::cout << "Money: " << std::fixed << std::setprecision(2) << money << std::endl;
+
 
     // 定义两个高精度的十进制浮点数
     mp::cpp_dec_float_100 a("123.456789");
@@ -351,7 +455,7 @@ inline void threadF()
 {
     for (int i = 0; i < 100; ++i)
     {
-        value++;
+        ++value;
     }
 }
 
@@ -425,9 +529,9 @@ Task<> OpenApi::threadPool(const HttpRequestPtr req, std::function<void(const Ht
         future_ret = fu.get();
     }
 
-    double foo = 0.0;
-    double bar = 1.0;
-    auto res = foo <=> bar;
+    constexpr double foo = 0.0;
+    constexpr double bar = 1.0;
+    auto const res = foo <=> bar;
     if (res < 0)
         std::cout << "foo 小于 bar" << std::endl;
     else if (res > 0)
@@ -452,6 +556,8 @@ Task<> OpenApi::fix(const HttpRequestPtr req, std::function<void(const HttpRespo
           : data()
         {}
     } _data;
+
+    static_assert(std::alignment_of_v<Data> >= 8, "Data struct must be aligned to 8 bytes");
 
     /*template<
         std::size_t Len,
@@ -489,10 +595,10 @@ Task<> OpenApi::fix(const HttpRequestPtr req, std::function<void(const HttpRespo
 
             if ((original_number + op_number) != next_original_number && next_original_number != 0)
             {
-                _data.item["record_id"] = result[i]["record_id"].template as<std::int32_t>();
-                _data.item["user_id"] = result[i]["user_id"].template as<std::int32_t>();
-                _data.item["original_number"] = result[i]["original_number"].template as<std::int32_t>();
-                _data.item["op_number"] = result[i]["op_number"].template as<std::int32_t>();
+                _data.item["record_id"] = result[i]["record_id"]. as<std::int32_t>();
+                _data.item["user_id"] = result[i]["user_id"]. as<std::int32_t>();
+                _data.item["original_number"] = result[i]["original_number"]. as<std::int32_t>();
+                _data.item["op_number"] = result[i]["op_number"]. as<std::int32_t>();
                 _data.item["next_original_number"] = next_original_number;
                 _data.item["diff"] = original_number + op_number - next_original_number;
 

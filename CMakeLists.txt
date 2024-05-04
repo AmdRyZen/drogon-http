@@ -61,13 +61,13 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# 条件判断  -flto   -flto=thin  -ljemalloc -mfpu=neon
+# 条件判断  -flto   -flto=thin  -ljemalloc -mfpu=neon -static-libgcc -static-libstdc++
 if (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
     set(CMAKE_CXX_FLAGS_DEBUG "-pipe -Wall -O0 -L/usr/local/lib")
     message("Debug mode:${CMAKE_CXX_FLAGS_DEBUG}")
 elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
-        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -ffast-math -march=native -mtune=native -fomit-frame-pointer -freorder-blocks -fweb -fno-stack-protector  -finline-functions -fomit-frame-pointer -funroll-loops -L/usr/local/lib -DARM_ARCH")
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -fmerge-all-constants -floop-unroll-and-jam -fno-strict-overflow -fno-tree-loop-distribute-patterns -ffast-math -falign-functions=32 -falign-labels=8 -falign-loops=32 -freorder-blocks -fweb -fno-stack-protector -finline-functions -funroll-loops -L/usr/local/lib -DARM_ARCH")
         message("Release mode for ARM:${CMAKE_CXX_FLAGS_RELEASE}")
     elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86")
         set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -L/usr/local/lib -DX86_ARCH")
@@ -124,7 +124,7 @@ add_executable(
         #utils/md5Utils.h utils/md5Utils.cpp
         aop/Application.h
         threadPool/threadPool.h utils/checkloginUtils.h
-        filters/LoginFilter.h utils/printer.h utils/aesOpenssl.cpp
+        filters/LoginFilter.h utils/printer.h utils/aesOpenssl.h
         filters/SqlFilter.h
         #[[${MODEL_SOURCES}]])
 

@@ -116,6 +116,7 @@ inline Application::Application()
         trieService.loadFromFile(word_path);
         trieService.loadStopWordFromFile(stopped_path);
         std::cout << "trieService load is success!" << std::endl;
+        std::cout << std::endl << std::endl;
     });
 }
 

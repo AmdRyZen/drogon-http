@@ -13,7 +13,7 @@
 class checkloginUtils
 {
   public:
-    static std::optional<std::string> checklogin(const drogon::HttpRequestPtr& req);
+    [[gnu::always_inline]] inline static std::optional<std::string> checklogin(const drogon::HttpRequestPtr& req);
 };
 
 std::optional<std::string> checkloginUtils::checklogin(const drogon::HttpRequestPtr& req)
