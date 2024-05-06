@@ -14,7 +14,6 @@ class SbcConvertService
 
     static std::string ws2s(const std::wstring& wstring);
 
-  public:
     static std::wstring wsQj2bj(const std::wstring& src);
 
     static int charConvert(const wchar_t& src);

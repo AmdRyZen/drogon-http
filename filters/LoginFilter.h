@@ -12,7 +12,7 @@
 using namespace drogon;
 
 namespace drogon {
-class DROGON_EXPORT LoginFilter : public HttpFilter<LoginFilter>
+class DROGON_EXPORT LoginFilter final : public HttpFilter<LoginFilter>
 {
   public:
     LoginFilter() = default;
@@ -25,9 +25,8 @@ class DROGON_EXPORT LoginFilter : public HttpFilter<LoginFilter>
 
 void LoginFilter::doFilter(const HttpRequestPtr& req, FilterCallback&& fcb, FilterChainCallback&& fccb)
 {
-    auto user_id = checkloginUtils::checklogin(req);
     //Edit your logic here
-    if (user_id.has_value())
+    if (checkloginUtils::checklogin(req).has_value())
     {
         //Passed
         fccb();
@@ -36,7 +35,7 @@ void LoginFilter::doFilter(const HttpRequestPtr& req, FilterCallback&& fcb, Filt
     //Check failed
     Json::Value data;
     data["msg"] = "NoLogin";
-    auto res = drogon::HttpResponse::newHttpJsonResponse(data);
+    const auto res = drogon::HttpResponse::newHttpJsonResponse(data);
     res->setStatusCode(k401Unauthorized);
     fcb(res);
 }

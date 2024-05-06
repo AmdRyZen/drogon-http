@@ -1,5 +1,4 @@
 #include "EchoWebsocket.h"
-#include "drogon/Session.h"
 #include "utils/redisUtils.h"
 #include "boost/format.hpp"
 

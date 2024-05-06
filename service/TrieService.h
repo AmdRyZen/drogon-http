@@ -17,12 +17,12 @@ class TrieNode
 
     ~TrieNode();
 
-    void addSubNode(uint16_t c, TrieNode* subNode)
+    void addSubNode(const uint16_t c, TrieNode* subNode)
     {
         subNodes_[c] = subNode;
     }
 
-    TrieNode* getSubNode(uint16_t c)
+    TrieNode* getSubNode(const uint16_t c)
     {
         return subNodes_[c];
     }
@@ -58,25 +58,25 @@ class TrieService
     TrieService& operator=(const TrieService& thad) = delete;
 
     //从文件加载敏感词列表，文件utf8格式，一个敏感词单独一行
-    void loadFromFile(const std::string& file_name);
+    static void loadFromFile(const std::string& file_name);
 
     //从内存加载敏感词列表
-    void loadFromMemory(std::unordered_set<std::wstring>& words);
+    [[gnu::always_inline]] inline static void loadFromMemory(std::unordered_set<std::wstring>& words);
 
     //加载停顿词从指定的文件
-    void loadStopWordFromFile(const std::string& file_name);
+    static void loadStopWordFromFile(const std::string& file_name);
 
     //从内存加载停顿词
-    void loadStopWordFromMemory(std::unordered_set<wchar_t>& words);
+    [[gnu::always_inline]] inline static void loadStopWordFromMemory(std::unordered_set<wchar_t>& words);
 
     //brief Inserts a word into the trie
-    void insert(const std::wstring& word);
+    [[gnu::always_inline]] inline static void insert(const std::wstring& word);
 
     //brief Returns if the word is in the trie
-    bool search(const std::wstring& word);
+    [[gnu::always_inline]] inline static bool search(const std::wstring& word);
 
     //brief Returns if there is any word in the trie that starts with the given prefix
-    bool startsWith(const std::wstring& prefix);
+    [[gnu::always_inline]] inline static bool startsWith(const std::wstring& prefix);
 
     //过滤敏感词并返回敏感词命中位置和信息
     std::set<SensitiveWord> getSensitive(const std::wstring& word);
@@ -85,10 +85,10 @@ class TrieService
     std::wstring replaceSensitive(const std::wstring& word);
 
   private:
-    int getSensitiveLength(std::wstring word, int startIndex);
+    [[gnu::always_inline]] inline static int getSensitiveLength(std::wstring word, size_t startIndex);
 
-    TrieNode* root_;
-    std::unordered_set<uint16_t /*unicode*/> stop_words_;
+    inline static TrieNode* root_;
+    inline static std::unordered_set<uint16_t /*unicode*/> stop_words_;
 };
 
 #endif  //LEARNING_CPP_TRIESERVICE_H

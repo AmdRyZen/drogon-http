@@ -15,7 +15,7 @@ TrieNode::TrieNode() = default;
 TrieNode::~TrieNode()
 {
     // 使用范围for循环和views::values删除subNodes_中的值
-    for (auto* value : std::ranges::subrange(subNodes_ | std::views::values))
+    for (const auto* value : std::ranges::subrange(subNodes_ | std::views::values))
     {
         delete value;
     }
@@ -103,26 +103,25 @@ std::set<SensitiveWord> TrieService::getSensitive(const std::wstring& word)
     return sensitiveSet;
 }
 
-int TrieService::getSensitiveLength(std::wstring word, int startIndex)
+int TrieService::getSensitiveLength(std::wstring word, size_t startIndex)
 {
     TrieNode* p1 = root_;
     int wordLen = 0;
     bool endFlag = false;
     for (size_t p3 = startIndex; p3 < word.length(); ++p3)
     {
-        int unicode = SbcConvertService::charConvert(word[p3]);
-        auto subNode = p1->getSubNode(unicode);
+        const int unicode = SbcConvertService::charConvert(word[p3]);
+        const auto subNode = p1->getSubNode(unicode);
         if (subNode == nullptr)
         {
             // 如果是停顿词，直接往下继续查找
-            if (stop_words_.find(unicode) != stop_words_.end())
+            if (stop_words_.contains(unicode))
             {
                 ++wordLen;
                 continue;
             }
             break;
         }
-        else
         {
             ++wordLen;
             // 直到找到尾巴的位置，才认为完整包含敏感词
@@ -131,7 +130,6 @@ int TrieService::getSensitiveLength(std::wstring word, int startIndex)
                 endFlag = true;
                 break;
             }
-            else
             {
                 p1 = subNode;
             }
@@ -170,7 +168,7 @@ void TrieService::loadFromFile(const std::string& file_name)
         insert(utf8_str);
         count++;
     }
-    std::cout << "load " << count << " words" << std::endl;
+    //std::cout << "load " << count << " words" << std::endl;
 }
 
 void TrieService::loadStopWordFromFile(const std::string& file_name)
@@ -192,7 +190,7 @@ void TrieService::loadStopWordFromFile(const std::string& file_name)
             count++;
         }
     }
-    std::cout << "load " << count << " stop words" << std::endl;
+    //std::cout << "load " << count << " stop words" << std::endl;
 }
 
 void TrieService::loadStopWordFromMemory(std::unordered_set<wchar_t>& words)

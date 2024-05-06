@@ -2,22 +2,23 @@
 // Created by 神圣·凯莎 on 2022/5/12.
 //
 
+#ifndef LEARNING_CPP_APPLICATION_H
+#define LEARNING_CPP_APPLICATION_H
+
 #include "service/TrieService.h"
 #include "threadPool/threadPool.h"
 #include <drogon/drogon.h>
 #include <filesystem>
 #include <iostream>
 #include <drogon/version.h>
-#include <drogon/utils/Utilities.h>
-#include <trantor/net/Resolver.h>
 #include <trantor/utils/Utilities.h>
 
-TrieService trieService;
+inline TrieService trieService;
 
-ThreadPool pool(4);
+inline ThreadPool pool(4);
 
 namespace App {
-static const char drogon[] = "\n"
+constexpr char drogon[] = "\n"
                       "                       .::::.\n"
                       "                     .::::::::.\n"
                       "                    :::::::::::  HELLO DROGON\n"
@@ -88,17 +89,17 @@ static const char drogon[] = "\n"
                      "████____███\n"
                      "█ _███_ _█_███";*/
 
-class Application
+class Application final
 {
   public:
-    Application();
+    [[gnu::always_inline]] inline Application();
 
     ~Application() = default;
 
-    virtual void initialization();
+    [[gnu::always_inline]] inline static void initialization();
 };
 
-inline Application::Application()
+Application::Application()
 {
     drogon::app().registerBeginningAdvice([]() {
         const auto tlsBackend = trantor::utils::tlsBackend();
@@ -107,20 +108,19 @@ inline Application::Application()
         std::cout << "Version: " << DROGON_VERSION << std::endl;
         std::cout << "Git commit: " << DROGON_VERSION_SHA1 << std::endl;
         std::cout << "ssl/tls backend: " << tlsBackend << std::endl;
-        std::cout << std::endl;
 
         std::string word_path;
         std::string stopped_path;
         word_path.append(std::filesystem::current_path()).append("/public/word.txt");
         stopped_path.append(std::filesystem::current_path()).append("/public/stopped.txt");
-        trieService.loadFromFile(word_path);
-        trieService.loadStopWordFromFile(stopped_path);
+        TrieService::loadFromFile(word_path);
+        TrieService::loadStopWordFromFile(stopped_path);
         std::cout << "trieService load is success!" << std::endl;
         std::cout << std::endl << std::endl;
     });
 }
 
-inline void Application::initialization()
+void Application::initialization()
 {
     drogon::app().registerPreRoutingAdvice([](const drogon::HttpRequestPtr& req,
                                               drogon::AdviceCallback&& acb,
@@ -132,3 +132,6 @@ inline void Application::initialization()
 }
 
 }  // namespace App
+
+
+#endif  //LEARNING_CPP_APPLICATION_H

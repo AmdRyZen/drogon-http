@@ -53,7 +53,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 条件判断 release  -flto   -flto=thin  -ljemalloc -mfpu=neon -static-libgcc -static-libstdc++
-# debug -fsanitize=address
+# debug clang -fsanitize=address  gcc -fsanitize=leak
 if (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
     set(CMAKE_CXX_FLAGS_DEBUG "-pipe -Wall -O0 -fsanitize=leak -L/usr/local/lib")
     message("Debug mode:${CMAKE_CXX_FLAGS_DEBUG}")
