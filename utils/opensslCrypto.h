@@ -11,7 +11,7 @@
 #include <openssl/sha.h>
 #include <openssl/md5.h>
 
-class aesOpenssl {
+class opensslCrypto {
 public:
     [[gnu::always_inline]] inline static std::string sha3_256(const std::string& input);
 
@@ -27,7 +27,7 @@ public:
 };
 
 
-std::string aesOpenssl::sha3_256(const std::string& input) {
+std::string opensslCrypto::sha3_256(const std::string& input) {
     unsigned char hash[SHA256_DIGEST_LENGTH];
     //SHA256_CTX sha3_ctx;
     EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
@@ -45,7 +45,7 @@ std::string aesOpenssl::sha3_256(const std::string& input) {
     return ss.str();
 }
 
-std::string aesOpenssl::md5(const std::string& input) {
+std::string opensslCrypto::md5(const std::string& input) {
     EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
     const EVP_MD* md = EVP_md5();
 
@@ -66,18 +66,18 @@ std::string aesOpenssl::md5(const std::string& input) {
 }
 
 
-std::vector<unsigned char> aesOpenssl::PKCS5Padding(const std::vector<unsigned char>& input, const int block_size) {
+std::vector<unsigned char> opensslCrypto::PKCS5Padding(const std::vector<unsigned char>& input, const int block_size) {
     const std::vector<unsigned char>::size_type padding = block_size - input.size() % block_size;
     std::vector<unsigned char> padded_input(input);
     padded_input.insert(padded_input.end(), padding, padding);
     return padded_input;
 }
 
-std::vector<unsigned char> aesOpenssl::stringToBytes(const std::string& str) {
+std::vector<unsigned char> opensslCrypto::stringToBytes(const std::string& str) {
     return {str.begin(), str.end()};
 }
 
-std::string aesOpenssl::AesCBCPk5EncryptBase64(const std::string& origData, const std::string& keyHex, const std::string& ivHex) {
+std::string opensslCrypto::AesCBCPk5EncryptBase64(const std::string& origData, const std::string& keyHex, const std::string& ivHex) {
     const std::vector<unsigned char> key = stringToBytes(keyHex);
     const std::vector<unsigned char> iv = stringToBytes(ivHex);
     const std::vector<unsigned char> origDataBytes = stringToBytes(origData);
@@ -114,7 +114,7 @@ std::string aesOpenssl::AesCBCPk5EncryptBase64(const std::string& origData, cons
     return encoded;
 }
 
-std::string aesOpenssl::AesCBCPk5DecryptBase64(const std::string& ciphertextBase64, const std::string& keyHex, const std::string& ivHex) {
+std::string opensslCrypto::AesCBCPk5DecryptBase64(const std::string& ciphertextBase64, const std::string& keyHex, const std::string& ivHex) {
     const std::vector<unsigned char> key = stringToBytes(keyHex);
     const std::vector<unsigned char> iv = stringToBytes(ivHex);
 

@@ -14,7 +14,7 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/format.hpp>
-#include "utils/aesOpenssl.h"
+#include "utils/opensslCrypto.h"
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <openssl/evp.h>
 #include <openssl/buffer.h>
@@ -56,21 +56,21 @@ Task<> OpenApi::aes(const HttpRequestPtr req, std::function<void(const HttpRespo
     {
         const std::string input = "123456";
 
-        hash = aesOpenssl::sha3_256(input);
+        hash = opensslCrypto::sha3_256(input);
         //std::cout << "SHA-256 Hash: " << hash << std::endl;
 
         // 不建议使用md5 虽然性能更好
-        md5_hash = aesOpenssl::md5(input);
+        md5_hash = opensslCrypto::md5(input);
         //std::cout << "MD5: " << md5_hash << std::endl;
 
         const std::string keyHex = "0123456789abcdef0123456789abcdef";
         const std::string ivHex = "0123456789abcdef0123456789abcdef";
         const std::string plaintext = "谢谢谢谢谢寻寻👀👀👀👀你好啊👀👀xxxx";
 
-        encrypted = aesOpenssl::AesCBCPk5EncryptBase64(plaintext, keyHex, ivHex);
+        encrypted = opensslCrypto::AesCBCPk5EncryptBase64(plaintext, keyHex, ivHex);
         //std::cout << "Encrypted: " << encrypted << std::endl;
 
-        decrypted = aesOpenssl::AesCBCPk5DecryptBase64(encrypted, keyHex, ivHex);
+        decrypted = opensslCrypto::AesCBCPk5DecryptBase64(encrypted, keyHex, ivHex);
         //std::cout << "Decrypted: " << decrypted << std::endl;
 
     } catch (const std::exception& e)
