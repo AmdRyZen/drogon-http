@@ -18,9 +18,7 @@
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <openssl/evp.h>
 #include <openssl/buffer.h>
-#include <boost/uuid/detail/md5.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <openssl/sha.h>
 
 #if defined(__arm__) || defined(__aarch64__)
     #include <arm_neon.h>
@@ -48,53 +46,22 @@ void printerFunc()
     io.run();
 }
 
-std::string sha3_256(const std::string& input) {
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256_CTX sha3_ctx;
-    EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
-
-    EVP_DigestInit_ex(mdctx, EVP_sha256(), nullptr);
-    EVP_DigestUpdate(mdctx, input.c_str(), input.length());
-    EVP_DigestFinal_ex(mdctx, hash, nullptr);
-
-    EVP_MD_CTX_free(mdctx);
-
-    std::stringstream ss;
-    for (unsigned char i : hash) {
-        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(i);
-    }
-    return ss.str();
-}
-
-std::string md5(const std::string& input) {
-    boost::uuids::detail::md5 md5;
-    md5.process_bytes(input.data(), input.length());
-    boost::uuids::detail::md5::digest_type digest;
-    md5.get_digest(digest);
-
-    // 转换为16进制字符串
-    std::stringstream ss;
-    for (auto byte : digest) {
-        ss << std::hex << std::setw(2) << static_cast<int>(byte);
-    }
-    return ss.str();
-}
-
 Task<> OpenApi::aes(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
     std::string encrypted;
     std::string decrypted;
+    std::string hash;
+    std::string md5_hash;
     try
     {
-        const std::string input = "qwer1234";
+        const std::string input = "123456";
 
-        const std::string hash = sha3_256(input);
-        std::cout << "SHA-256 Hash: " << hash << std::endl;
+        hash = aesOpenssl::sha3_256(input);
+        //std::cout << "SHA-256 Hash: " << hash << std::endl;
 
-        // 不建议使用md5
-        /*const std::string md5_hash = md5(input);
-        std::cout << "MD5 Hash: " << md5_hash << std::endl;*/
-
+        // 不建议使用md5 虽然性能更好
+        md5_hash = aesOpenssl::md5(input);
+        //std::cout << "MD5: " << md5_hash << std::endl;
 
         const std::string keyHex = "0123456789abcdef0123456789abcdef";
         const std::string ivHex = "0123456789abcdef0123456789abcdef";
@@ -116,6 +83,8 @@ Task<> OpenApi::aes(const HttpRequestPtr req, std::function<void(const HttpRespo
     ret["code"] = 200;
     ret["Encrypted"] = encrypted;
     ret["Decrypted"] = decrypted;
+    ret["hash"] = hash;
+    ret["md5_hash"] = md5_hash;
     co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
 }
 
@@ -289,11 +258,11 @@ void OpenApi::curlPost(const HttpRequestPtr& req, std::function<void(const HttpR
 
 
 
-    std::string url = "http://127.0.0.1:9090";
+    const std::string url = "http://127.0.0.1:9090";
     std::string param = "id=222230&bb=xxxxx&cc=6&dd=10000&ip=127.0.0.1&zz=0&ff=11111111";
     std::string aes128Key = "xxxxxxxx";
 
-    auto client = drogon::HttpClient::newHttpClient(url);
+    const auto client = drogon::HttpClient::newHttpClient(url);
     // aes
     /*std::string encryptedText = cipherUtils::encrypt_cbc(SbcConvertService::ws2s(SbcConvertService::s2ws(param)), aes128Key, aes128Key);
     std::cout << "encryptedText = " << encryptedText << std::endl;
@@ -321,7 +290,7 @@ void OpenApi::curlPost(const HttpRequestPtr& req, std::function<void(const HttpR
 
     std::cout << "__params = " << params.toStyledString() << std::endl;
 
-    auto request = drogon::HttpRequest::newHttpRequest();
+    const auto request = drogon::HttpRequest::newHttpRequest();
     request->addHeader("Content-Type", "application/json");
     request->setBody(params.toStyledString());
     request->setMethod(drogon::Post);
@@ -357,7 +326,7 @@ Task<> OpenApi::getValue(const HttpRequestPtr req,
     std::stringstream command;
     command << "get "
             << "aa";
-    Json::Value redis_value = co_await redisUtils::getCoroRedisValue(command.str());
+    const Json::Value redis_value = co_await redisUtils::getCoroRedisValue(command.str());
 
     Json::Value ret;
     ret["msg"] = "ok";
@@ -398,14 +367,14 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     Json::Value root;
     root["id"] = 1;
     root["name"] = "b";
-    auto t3 = std::chrono::steady_clock::now();
+    const auto t3 = std::chrono::steady_clock::now();
     for (auto i = 0; i < 1000; i++)
     {
         root.toStyledString();
     }
-    auto t4 = std::chrono::steady_clock::now();
+    const auto t4 = std::chrono::steady_clock::now();
     //纳秒级
-    double dr_ns1 = std::chrono::duration<double, std::nano>(t4 - t3).count();
+    const double dr_ns1 = std::chrono::duration<double, std::nano>(t4 - t3).count();
     std::cout << "[jsoncpp cost: " << dr_ns1 << " ns]" << std::endl;
 
     // rapidjson
@@ -417,33 +386,33 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     writer.Key("name");
     writer.String("a");
     writer.EndObject();
-    auto t5 = std::chrono::steady_clock::now();
+    const auto t5 = std::chrono::steady_clock::now();
     for (auto i = 0; i < 1000; i++)
     {
         buf.GetString();
     }
-    auto t6 = std::chrono::steady_clock::now();
+    const auto t6 = std::chrono::steady_clock::now();
     //纳秒级
-    double dr_ns2 = std::chrono::duration<double, std::nano>(t6 - t5).count();
+    const double dr_ns2 = std::chrono::duration<double, std::nano>(t6 - t5).count();
     std::cout << "[rapidjson cost: " << dr_ns2 << " ns]" << std::endl;
 
     // onlohmannJson
     json onlohmannJson;
     onlohmannJson["id"] = 1;
     onlohmannJson["name"] = "c";
-    auto t7 = std::chrono::steady_clock::now();
+    const auto t7 = std::chrono::steady_clock::now();
     for (auto i = 0; i < 1000; i++)
     {
         onlohmannJson.dump();
     }
-    auto t8 = std::chrono::steady_clock::now();
+    const auto t8 = std::chrono::steady_clock::now();
     //纳秒级
-    double dr_ns3 = std::chrono::duration<double, std::nano>(t8 - t7).count();
+    const double dr_ns3 = std::chrono::duration<double, std::nano>(t8 - t7).count();
     std::cout << "[onlohmannJson cost: " << dr_ns3 << " ns]" << std::endl;
 
     std::cout << "---------------xx-----------------" << std::endl;
 
-    auto resp = HttpResponse::newHttpResponse();
+    const auto resp = HttpResponse::newHttpResponse();
     resp->setStatusCode(k200OK);
     resp->setContentTypeCode(drogon::CT_APPLICATION_JSON);
     resp->setBody(onlohmannJson.dump());
@@ -471,17 +440,17 @@ inline void threadF1()
         std::cout << "count: " << count << std::endl;
         // 当前线程休眠1毫秒
         //std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        value1++;
+        ++value1;
     }
 }
 
 Task<> OpenApi::threadPool(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
-    auto result = pool.enqueue([] {
+    const auto result = pool.enqueue([] {
         threadF();
         threadF1();
     });
-    auto result1 = pool.enqueue([] {
+    const auto result1 = pool.enqueue([] {
         threadF();
         threadF1();
     });
@@ -494,8 +463,8 @@ Task<> OpenApi::threadPool(const HttpRequestPtr req, std::function<void(const Ht
     tf::Executor executor;
     tf::Taskflow taskflow;
 
-    auto clientPtr = drogon::app().getFastDbClient();
-    auto ret = co_await clientPtr->execSqlCoro("select count(1) from f_user where username != ?", "薯条三兄弟");
+    const auto clientPtr = drogon::app().getFastDbClient();
+    const auto ret = co_await clientPtr->execSqlCoro("select count(1) from f_user where username != ?", "薯条三兄弟");
     auto count = ret[0][0].as<std::int32_t>();
 
     // now - use std::future instead

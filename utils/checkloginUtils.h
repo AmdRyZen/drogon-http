@@ -6,7 +6,6 @@
 #define DROGON_HTTP_CHECKLOGINUTILS_H
 
 #include <drogon/HttpAppFramework.h>
-#include <iostream>
 #include <jwt-cpp/jwt.h>
 #include <optional>
 
@@ -20,10 +19,10 @@ std::optional<std::string> checkloginUtils::checklogin(const drogon::HttpRequest
 {
     try
     {
-        auto req_token = req->getHeader("Authorization");
+        const auto req_token = req->getHeader("Authorization");
 
-        auto decoded = jwt::decode(req_token);
-        auto verifier = jwt::verify()
+        const auto decoded = jwt::decode(req_token);
+        const auto verifier = jwt::verify()
                             .allow_algorithm(jwt::algorithm::hs256{drogon::app().getCustomConfig()["jwt-secret"].asString()})
                             .with_issuer("auth0");
         verifier.verify(decoded);

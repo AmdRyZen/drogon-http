@@ -5,13 +5,18 @@
 #include <string>
 #include <openssl/rand.h>
 #include <openssl/evp.h>
-#include <cstring>
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
 #include <string>
+#include <openssl/sha.h>
+#include <openssl/md5.h>
 
 class aesOpenssl {
 public:
+    [[gnu::always_inline]] inline static std::string sha3_256(const std::string& input);
+
+    [[gnu::always_inline]] inline static std::string md5(const std::string& input);
+
     [[gnu::always_inline]] inline static std::vector<unsigned char> PKCS5Padding(const std::vector<unsigned char>& input, int block_size);
 
     [[gnu::always_inline]] inline static std::vector<unsigned char> stringToBytes(const std::string& str);
@@ -20,6 +25,46 @@ public:
 
     [[gnu::always_inline]] inline static std::string AesCBCPk5DecryptBase64(const std::string& ciphertextBase64, const std::string& keyHex, const std::string& ivHex);
 };
+
+
+std::string aesOpenssl::sha3_256(const std::string& input) {
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    //SHA256_CTX sha3_ctx;
+    EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
+
+    EVP_DigestInit_ex(mdctx, EVP_sha256(), nullptr);
+    EVP_DigestUpdate(mdctx, input.c_str(), input.length());
+    EVP_DigestFinal_ex(mdctx, hash, nullptr);
+
+    EVP_MD_CTX_free(mdctx);
+
+    std::stringstream ss;
+    for (const unsigned char i : hash) {
+        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(i);
+    }
+    return ss.str();
+}
+
+std::string aesOpenssl::md5(const std::string& input) {
+    EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
+    const EVP_MD* md = EVP_md5();
+
+    EVP_DigestInit_ex(mdctx, md, nullptr);
+    EVP_DigestUpdate(mdctx, input.c_str(), input.length());
+
+    unsigned char digest[MD5_DIGEST_LENGTH];
+    unsigned int len = 0;
+    EVP_DigestFinal_ex(mdctx, digest, &len);
+
+    EVP_MD_CTX_free(mdctx);
+
+    std::stringstream ss;
+    for (int i = 0; i < len; i++) {
+        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(digest[i]);
+    }
+    return ss.str();
+}
+
 
 std::vector<unsigned char> aesOpenssl::PKCS5Padding(const std::vector<unsigned char>& input, const int block_size) {
     const std::vector<unsigned char>::size_type padding = block_size - input.size() % block_size;
@@ -35,7 +80,6 @@ std::vector<unsigned char> aesOpenssl::stringToBytes(const std::string& str) {
 std::string aesOpenssl::AesCBCPk5EncryptBase64(const std::string& origData, const std::string& keyHex, const std::string& ivHex) {
     const std::vector<unsigned char> key = stringToBytes(keyHex);
     const std::vector<unsigned char> iv = stringToBytes(ivHex);
-    //std::vector<unsigned char> origData = hexStringToBytes(origDataHex);
     const std::vector<unsigned char> origDataBytes = stringToBytes(origData);
 
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();

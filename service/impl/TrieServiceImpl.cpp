@@ -5,16 +5,19 @@
 #include "../TrieService.h"
 #include "fstream"
 #include "iostream"
+#include "../SbcConvertService.h"
+#include <ranges>
 
-const wchar_t kEndFlag = L'ﾰ';  // unicode: FFB0
+constexpr wchar_t kEndFlag = L'ﾰ';  // unicode: FFB0
 
 TrieNode::TrieNode() = default;
 
 TrieNode::~TrieNode()
 {
-    for (auto i : subNodes_)
+    // 使用范围for循环和views::values删除subNodes_中的值
+    for (auto* value : std::ranges::subrange(subNodes_ | std::views::values))
     {
-        delete i.second;
+        delete value;
     }
     subNodes_.clear();
 }

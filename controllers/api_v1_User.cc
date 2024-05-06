@@ -8,6 +8,7 @@
 #include <drogon/drogon.h>
 #include "models/XxlJobInfo.h"
 #include <drogon/orm/Mapper.h>
+#include "service/SbcConvertService.h"
 
 using namespace api::v1;
 using namespace drogon_model::xxl_job;
@@ -310,11 +311,6 @@ void User::serdeJson(const HttpRequestPtr& req, std::function<void(const HttpRes
     std::cout << "[cost: " << dr_ms << " ms]" << std::endl;
     std::cout << "type: " << root["type"].asString() << std::endl;
 
-    /* list = root["features"];
-    for (int i = 0; i < list.size(); ++i) {
-        std::cout << list[i] << " ";
-    }*/
-
     Json::Value data;
     data["msg"] = "ok";
     data["code"] = 200;
@@ -324,7 +320,7 @@ void User::serdeJson(const HttpRequestPtr& req, std::function<void(const HttpRes
 void User::quit(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback)
 {
     drogon::app().quit();
-    auto data = HttpResponse::newHttpResponse();
+    const auto data = HttpResponse::newHttpResponse();
     data->setStatusCode(HttpStatusCode::k204NoContent);
     callback(data);
 }

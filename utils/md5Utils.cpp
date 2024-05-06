@@ -80,7 +80,7 @@ void md5Utils::MD5Init(MD5_CTX* context)
     context->state[3] = 0x10325476;
 }
 
-void md5Utils::MD5Update(MD5_CTX* context, unsigned char* input, unsigned int inputlen)
+void md5Utils::MD5Update(MD5_CTX* context, unsigned char* input, const unsigned int inputlen)
 {
     unsigned int i = 0, index = 0, partlen = 0;
     index = (context->count[0] >> 3) & 0x3F;  //模64字节的余数，第一次调用为0
@@ -199,7 +199,7 @@ void md5Utils::MD5Transform(unsigned int* state, unsigned char* block)
     state[3] += d;
 }
 
-void md5Utils::MD5Encode(unsigned char* output, unsigned int* input, unsigned int len)
+void md5Utils::MD5Encode(unsigned char* output, const unsigned int* input, const unsigned int len)
 {
     unsigned int i = 0, j = 0;  //len是char的长度
     while (j < len)
@@ -213,7 +213,7 @@ void md5Utils::MD5Encode(unsigned char* output, unsigned int* input, unsigned in
     }
 }
 
-void md5Utils::MD5Decode(unsigned int* output, unsigned char* input, unsigned int len)
+void md5Utils::MD5Decode(unsigned int* output, const unsigned char* input, const unsigned int len)
 {
     unsigned int i = 0, j = 0;
     while (j < len)
