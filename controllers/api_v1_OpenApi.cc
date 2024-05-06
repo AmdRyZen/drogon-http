@@ -165,7 +165,6 @@ Task<> OpenApi::boost(const HttpRequestPtr req, std::function<void(const HttpRes
     std::cout << std::endl;
 
 
-
     // 定义固定精度的十进制浮点数，精度为100位
     mp::cpp_dec_float_100 money("123.456789");
 

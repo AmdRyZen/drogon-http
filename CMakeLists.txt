@@ -55,7 +55,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # 条件判断 release  -flto   -flto=thin  -ljemalloc -mfpu=neon -static-libgcc -static-libstdc++
 # debug clang -fsanitize=address  gcc -fsanitize=leak
 if (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
-    set(CMAKE_CXX_FLAGS_DEBUG "-pipe -Wall -O0 -fsanitize=leak -L/usr/local/lib")
+    set(CMAKE_CXX_FLAGS_DEBUG "-pipe -Wall -Og -fsanitize=leak -L/usr/local/lib")
     message("Debug mode:${CMAKE_CXX_FLAGS_DEBUG}")
 elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
     # 第一步：生成代码覆盖率文件
@@ -63,14 +63,14 @@ elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate")
 
     # 第二步：使用代码覆盖率文件
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use")
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
-        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -fmerge-all-constants -floop-unroll-and-jam -fno-strict-overflow -fno-tree-loop-distribute-patterns -ffast-math -falign-functions=32 -falign-labels=8 -falign-loops=32 -freorder-blocks -fweb -fno-stack-protector -finline-functions -funroll-loops -L/usr/local/lib -DARM_ARCH")
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -ftree-parallelize-loops=3 -fipa-pta -freorder-blocks-and-partition -fmerge-all-constants -floop-unroll-and-jam -fno-strict-overflow -fno-tree-loop-distribute-patterns -ffast-math -falign-functions=32 -falign-labels=8 -falign-loops=32 -freorder-blocks -fweb -fno-stack-protector -finline-functions -funroll-loops -L/usr/local/lib -DARM_ARCH")
         message("Release mode for ARM:${CMAKE_CXX_FLAGS_RELEASE}")
     elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86")
-        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -L/usr/local/lib -DX86_ARCH")
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -flto -fomit-frame-pointer -march=native -mtune=native -ftree-parallelize-loops=3 -fipa-pta -freorder-blocks-and-partition -L/usr/local/lib -DX86_ARCH")
         message("Release mode for x86:${CMAKE_CXX_FLAGS_RELEASE}")
     else()
         message(FATAL_ERROR "Unsupported architecture")
@@ -84,7 +84,8 @@ endif ()
 #find_package(Threads REQUIRED)
 #find_package(PkgConfig REQUIRED)
 # Find required protobuf package
-find_package(Protobuf REQUIRED)
+
+#[[find_package(Protobuf REQUIRED)
 if (PROTOBUF_FOUND)
     message(STATUS "protobuf library found")
 else ()
@@ -93,8 +94,8 @@ endif ()
 include_directories(${Protobuf_INCLUDE_DIRS})
 
 add_subdirectory(proto)
-#include_directories(${PROTO_GEN_C_INCLUDE_DIRS}) # c
-include_directories(${PROTO_GEN_CXX_INCLUDE_DIRS}) # cpp
+include_directories(${PROTO_GEN_C_INCLUDE_DIRS}) # c
+include_directories(${PROTO_GEN_CXX_INCLUDE_DIRS}) # cpp]]
 
 #[[set(MODEL_SOURCES
         models/XxlJobGroup.h  models/XxlJobGroup.cc
