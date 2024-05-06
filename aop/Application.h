@@ -95,8 +95,6 @@ class Application final
     [[gnu::always_inline]] inline Application();
 
     ~Application() = default;
-
-    [[gnu::always_inline]] inline static void initialization();
 };
 
 Application::Application()
@@ -118,10 +116,7 @@ Application::Application()
         std::cout << "trieService load is success!" << std::endl;
         std::cout << std::endl << std::endl;
     });
-}
 
-void Application::initialization()
-{
     drogon::app().registerPreRoutingAdvice([](const drogon::HttpRequestPtr& req,
                                               drogon::AdviceCallback&& acb,
                                               drogon::AdviceChainCallback&& accb) {
@@ -130,7 +125,6 @@ void Application::initialization()
         accb();
     });
 }
-
 }  // namespace App
 
 

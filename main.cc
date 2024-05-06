@@ -7,7 +7,7 @@ int main()
 {
     try
     {
-        App::Application().initialization();
+        Application();
 
         // 注册 GzipFilter 插件
         drogon::app().enableGzip(true);

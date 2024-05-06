@@ -8,22 +8,6 @@ SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13")]]
 
 project(drogon-http C CXX)
 
-#[[# 开启数据收集模式
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fprofile-generate")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-generate")
-
-# 开启数据使用模式
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fprofile-use")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-use")]]
-
-
-# 开启数据收集模式（Release 模式）
-#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-generate")
-
-# 开启数据使用模式（Release 模式）
-#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-use=/Users/shenshengkaisha/Desktop/github/drogon-http/fprofile/executable")
-
-
 include(CheckIncludeFileCXX)
 
 #configure_file(config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/config.h.in @ONLY)
@@ -48,29 +32,28 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86")
     add_compile_options(-DX86_ARCH)
 endif()
 
-
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 条件判断 release  -flto   -flto=thin  -ljemalloc -mfpu=neon -static-libgcc -static-libstdc++
 # debug clang -fsanitize=address  gcc -fsanitize=leak
 if (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
+    # 第一步：生成代码覆盖率文件
+    #[[set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-generate=${CMAKE_SOURCE_DIR}/fprofile")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate=${CMAKE_SOURCE_DIR}/fprofile")]]
+
     set(CMAKE_CXX_FLAGS_DEBUG "-pipe -Wall -Og -fsanitize=leak -L/usr/local/lib")
     message("Debug mode:${CMAKE_CXX_FLAGS_DEBUG}")
 elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    # 第一步：生成代码覆盖率文件
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-generate")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate")
-
     # 第二步：使用代码覆盖率文件
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use")
+   #[[ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use=${CMAKE_SOURCE_DIR}/fprofile")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use=${CMAKE_SOURCE_DIR}/fprofile")]]
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
-        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -ftree-parallelize-loops=3 -fipa-pta -freorder-blocks-and-partition -fmerge-all-constants -floop-unroll-and-jam -fno-strict-overflow -fno-tree-loop-distribute-patterns -ffast-math -falign-functions=32 -falign-labels=8 -falign-loops=32 -freorder-blocks -fweb -fno-stack-protector -finline-functions -funroll-loops -L/usr/local/lib -DARM_ARCH")
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -fopenmp -ftree-parallelize-loops=3 -fipa-pta -freorder-blocks-and-partition -fmerge-all-constants -floop-unroll-and-jam -fno-strict-overflow -fno-tree-loop-distribute-patterns -ffast-math -falign-functions=32 -falign-labels=8 -falign-loops=32 -freorder-blocks -fweb -fno-stack-protector -finline-functions -funroll-loops -L/usr/local/lib -DARM_ARCH")
         message("Release mode for ARM:${CMAKE_CXX_FLAGS_RELEASE}")
     elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86")
-        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -flto -fomit-frame-pointer -march=native -mtune=native -ftree-parallelize-loops=3 -fipa-pta -freorder-blocks-and-partition -L/usr/local/lib -DX86_ARCH")
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -fopenmp -ftree-parallelize-loops=3 -fipa-pta -freorder-blocks-and-partition -fmerge-all-constants -floop-unroll-and-jam -fno-strict-overflow -fno-tree-loop-distribute-patterns -ffast-math -falign-functions=32 -falign-labels=8 -falign-loops=32 -freorder-blocks -fweb -fno-stack-protector -finline-functions -funroll-loops -L/usr/local/lib -DX86_ARCH")
         message("Release mode for x86:${CMAKE_CXX_FLAGS_RELEASE}")
     else()
         message(FATAL_ERROR "Unsupported architecture")
