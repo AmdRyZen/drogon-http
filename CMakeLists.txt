@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 
-SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/gcc-11")
-SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/g++-11")
+#[[SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/gcc-11")
+SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/g++-11")]]
 
-#[[SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/gcc-13")
-SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13")]]
+SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc/14.1.0/bin/gcc-14")
+SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc/14.1.0/bin/g++-14")
 
 project(drogon-http C CXX)
 
@@ -50,10 +50,10 @@ elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use=${CMAKE_SOURCE_DIR}/fprofile")]]
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
-        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -fopenmp -ftree-parallelize-loops=3 -fipa-pta -freorder-blocks-and-partition -fmerge-all-constants -floop-unroll-and-jam -fno-strict-overflow -fno-tree-loop-distribute-patterns -ffast-math -falign-functions=32 -falign-labels=8 -falign-loops=32 -freorder-blocks -fweb -fno-stack-protector -finline-functions -funroll-loops -L/usr/local/lib -DARM_ARCH")
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -flto -fomit-frame-pointer -mcpu=native -mtune=native -ftree-vectorize -fopenmp -ftree-parallelize-loops=3 -fipa-pta -freorder-blocks-and-partition -fmerge-all-constants -floop-unroll-and-jam -fno-strict-overflow -fno-tree-loop-distribute-patterns -ffast-math -falign-functions=32 -falign-labels=8 -falign-loops=32 -freorder-blocks -fweb -fno-stack-protector -finline-functions -funroll-loops -L/usr/local/lib -DARM_ARCH")
         message("Release mode for ARM:${CMAKE_CXX_FLAGS_RELEASE}")
     elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86")
-        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -fopenmp -ftree-parallelize-loops=3 -fipa-pta -freorder-blocks-and-partition -fmerge-all-constants -floop-unroll-and-jam -fno-strict-overflow -fno-tree-loop-distribute-patterns -ffast-math -falign-functions=32 -falign-labels=8 -falign-loops=32 -freorder-blocks -fweb -fno-stack-protector -finline-functions -funroll-loops -L/usr/local/lib -DX86_ARCH")
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -march=native -mtune=native -ftree-vectorize -fopenmp -ftree-parallelize-loops=3 -fipa-pta -freorder-blocks-and-partition -fmerge-all-constants -floop-unroll-and-jam -fno-strict-overflow -fno-tree-loop-distribute-patterns -ffast-math -falign-functions=32 -falign-labels=8 -falign-loops=32 -freorder-blocks -fweb -fno-stack-protector -finline-functions -funroll-loops -L/usr/local/lib -DX86_ARCH")
         message("Release mode for x86:${CMAKE_CXX_FLAGS_RELEASE}")
     else()
         message(FATAL_ERROR "Unsupported architecture")

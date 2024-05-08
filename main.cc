@@ -1,13 +1,11 @@
 #include "aop/Application.h"
 #include <drogon/drogon.h>
 
-using namespace App;
-
 int main()
 {
     try
     {
-        Application();
+        App::Application();
 
         // 注册 GzipFilter 插件
         drogon::app().enableGzip(true);

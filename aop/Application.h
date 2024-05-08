@@ -95,6 +95,8 @@ class Application final
     [[gnu::always_inline]] inline Application();
 
     ~Application() = default;
+
+    Application initialization();
 };
 
 Application::Application()
