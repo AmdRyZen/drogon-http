@@ -12,6 +12,8 @@
 #include <iostream>
 #include <drogon/version.h>
 #include <trantor/utils/Utilities.h>
+#include <boost/format.hpp>
+#include <boost/date_time.hpp>
 
 inline TrieService trieService;
 
@@ -102,12 +104,11 @@ class Application final
 Application::Application()
 {
     drogon::app().registerBeginningAdvice([]() {
-        const auto tlsBackend = trantor::utils::tlsBackend();
         std::cout << drogon << std::endl;
         std::cout << "A utility for drogon" << std::endl;
-        std::cout << "Version: " << DROGON_VERSION << std::endl;
-        std::cout << "Git commit: " << DROGON_VERSION_SHA1 << std::endl;
-        std::cout << "ssl/tls backend: " << tlsBackend << std::endl;
+        std::cout << std::format("Version: {}", DROGON_VERSION) << std::endl;
+        std::cout << std::format("Git commit: {}", DROGON_VERSION_SHA1) << std::endl;
+        std::cout << std::format("Ssl/tls backend: {}",  trantor::utils::tlsBackend()) << std::endl;
 
         std::string word_path;
         std::string stopped_path;
@@ -115,7 +116,10 @@ Application::Application()
         stopped_path.append(std::filesystem::current_path()).append("/public/stopped.txt");
         TrieService::loadFromFile(word_path);
         TrieService::loadStopWordFromFile(stopped_path);
-        std::cout << "trieService load is success!" << std::endl;
+        std::cout << "TrieService load is success!" << std::endl;
+
+        boost::posix_time::ptime current_datetime = boost::posix_time::second_clock::local_time();
+        std::cout << "Current date and time: " << current_datetime << std::endl;
         std::cout << std::endl << std::endl;
     });
 
