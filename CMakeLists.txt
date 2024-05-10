@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.26)
 
 #[[SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/gcc-11")
 SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/g++-11")]]
@@ -166,8 +166,10 @@ if (CMAKE_CXX_STANDARD LESS 17)
     #target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost)
 elseif (CMAKE_CXX_STANDARD LESS 23)
     message(STATUS "use c++20")
-else ()
+elseif (CMAKE_CXX_STANDARD LESS 26)
     message(STATUS "use c++23")
+else ()
+    message(STATUS "use c++26")
 endif ()
 
 aux_source_directory(controllers CTL_SRC)

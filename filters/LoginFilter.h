@@ -17,13 +17,13 @@ class DROGON_EXPORT LoginFilter final : public HttpFilter<LoginFilter>
   public:
     LoginFilter() = default;
 
-    [[gnu::always_inline]] inline void doFilter(const HttpRequestPtr& req,
+    void doFilter(const HttpRequestPtr& req,
                   FilterCallback&& fcb,
                   FilterChainCallback&& fccb) override;
 };
 }  // namespace drogon
 
-void LoginFilter::doFilter(const HttpRequestPtr& req, FilterCallback&& fcb, FilterChainCallback&& fccb)
+[[gnu::always_inline]] inline void LoginFilter::doFilter(const HttpRequestPtr& req, FilterCallback&& fcb, FilterChainCallback&& fccb)
 {
     //Edit your logic here
     if (checkloginUtils::checklogin(req).has_value())

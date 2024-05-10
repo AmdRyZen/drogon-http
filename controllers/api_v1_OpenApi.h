@@ -6,7 +6,7 @@
 extern ThreadPool pool;
 using namespace drogon;
 namespace api::v1 {
-class OpenApi : public drogon::HttpController<OpenApi>
+class OpenApi final : public drogon::HttpController<OpenApi>
 {
   public:
     METHOD_LIST_BEGIN

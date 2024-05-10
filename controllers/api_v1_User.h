@@ -6,7 +6,7 @@
 extern TrieService trieService;
 using namespace drogon;
 namespace api::v1 {
-class User : public drogon::HttpController<User>
+class User final : public drogon::HttpController<User>
 {
   public:
     METHOD_LIST_BEGIN

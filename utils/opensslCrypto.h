@@ -59,7 +59,7 @@ std::string opensslCrypto::md5(const std::string& input) {
     EVP_MD_CTX_free(mdctx);
 
     std::stringstream ss;
-    for (int i = 0; i < len; i++) {
+    for (unsigned int i = 0; i < len; i++) {
         ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(digest[i]);
     }
     return ss.str();

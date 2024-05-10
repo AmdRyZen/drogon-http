@@ -58,8 +58,8 @@
     "static_files_cache_time": 5,
     "simple_controllers_map": [
       {
-        "path": "/path/name",
-        "controller": "controllerClassName",
+        "path": "/test",
+        "controller": "PlaintextCtrl",
         "http_methods": [
           "get",
           "post"
