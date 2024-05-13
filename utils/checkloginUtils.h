@@ -30,6 +30,7 @@ std::optional<std::string> checkloginUtils::checklogin(const drogon::HttpRequest
     }
     catch (const std::exception& e)
     {
+        LOG_ERROR << "checklogin err = " << e.what() << " login";
         return std::nullopt;
     }
 }

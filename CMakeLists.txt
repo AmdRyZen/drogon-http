@@ -54,6 +54,7 @@ elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
         -ftree-vectorize -fopenmp -ftree-parallelize-loops=3 -fipa-pta -freorder-blocks-and-partition \
         -fmerge-all-constants -floop-unroll-and-jam -fno-strict-overflow -fno-tree-loop-distribute-patterns \
         -ffast-math -falign-functions=32 -falign-labels=8 -falign-loops=32 -freorder-blocks -fweb \
+        -fdelete-null-pointer-checks \
         -fno-stack-protector -finline-functions -funroll-loops -L/usr/local/lib -DARM_ARCH")
         message("Release mode for ARM:${CMAKE_CXX_FLAGS_RELEASE}")
     elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86")
@@ -96,6 +97,9 @@ else ()
     message("Release mode:${CMAKE_CXX_FLAGS_RELEASE}")
     message("CMAKE_BUILD_TYPE:${CMAKE_BUILD_TYPE}")
 endif ()
+
+set(FOO_USE_STATIC_LIBS ON) # 告诉CMake优先使用静态库
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++") # 对于GCC
 
 #find_package(Threads REQUIRED)
 #find_package(PkgConfig REQUIRED)
