@@ -10,6 +10,7 @@ class OpenApi final : public drogon::HttpController<OpenApi>
 {
   public:
     METHOD_LIST_BEGIN
+    METHOD_ADD(OpenApi::algorithm, "/algorithm", Get);
     METHOD_ADD(OpenApi::aes, "/aes", Get);
     METHOD_ADD(OpenApi::simd, "/simd", Get);
     METHOD_ADD(OpenApi::boost, "/boost", Get);
@@ -29,6 +30,8 @@ class OpenApi final : public drogon::HttpController<OpenApi>
     // your declaration of processing function maybe like this:
     // void get(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, int p1, std::string p2);
     // void your_method_name(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, double p1, int p2) const;
+
+    static Task<> algorithm(HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
 
     static Task<> aes(HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
 

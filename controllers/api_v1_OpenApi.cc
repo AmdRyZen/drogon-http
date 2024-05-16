@@ -19,6 +19,7 @@
 #include <openssl/evp.h>
 #include <openssl/buffer.h>
 #include <boost/uuid/uuid_io.hpp>
+#include <execution> // 可能需要此头文件
 
 #if defined(__arm__) || defined(__aarch64__)
     #include <arm_neon.h>
@@ -45,6 +46,119 @@ void printerFunc()
     // 运行io_service对象，处理所有事件（包括回调函数）
     io.run();
 }
+
+Task<> OpenApi::algorithm(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(-10000000, 10000000); // 生成-1000到1000之间的随机数，包括负数
+
+    std::vector<int> vec(1000000);
+    std::ranges::generate(vec.begin(), vec.end(), [&]() { return dis(gen); });
+
+    auto vec_copy = vec;
+    auto vec_copy1 = vec;
+
+    auto start = std::chrono::high_resolution_clock::now();
+    std::ranges::sort(vec);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "std::ranges::sort: " << elapsed.count() << " seconds\n";
+
+    start = std::chrono::high_resolution_clock::now();
+    std::stable_sort(std::execution::par, vec_copy.begin(), vec_copy.end());
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "std::ranges::stable_sort: " << elapsed.count() << " seconds\n";
+
+    start = std::chrono::high_resolution_clock::now();
+    // C++17 引入了并行算法，通过指定执行策略（如 std::execution::par），可以利用多线程和多核处理器来加速排序。
+    std::sort(std::execution::par, vec_copy1.begin(), vec_copy1.end());
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "std::sort std::execution::par: " << elapsed.count() << " seconds\n";
+
+
+    std::sort(vec.begin() + 2, vec.begin() + 7); // 只排序索引从2到6的元素
+
+    const bool found = std::ranges::binary_search(vec.begin(), vec.end(), 1003);
+    std::cout << "found: " << found << "\n";
+
+    const auto sum = std::accumulate(vec.begin(), vec.end(), 0);
+    std::cout << "sum: " << sum << "\n";
+
+    std::ranges::for_each(vec, [](int &x) { x += 1; });
+    auto sum1 = 0;
+    for (const int v : vec)
+    {
+        sum1 += v;
+    }
+    std::cout << "sum1: " << sum1 << "\n";
+
+    for(const auto& elem : vec) {
+        if (elem < 0) {
+            //std::cout << "Element: " << elem << "\n";
+        }
+    }
+
+    const auto max_value = *std::ranges::max_element(vec);
+    const auto min_value = *std::ranges::min_element(vec);
+    std::cout << "Max element: " << max_value << ", Min element: " << min_value << "\n";
+
+    // 已排序的向量
+    const bool is_sorted_flag = std::ranges::is_sorted(vec);
+    std::cout << "Is sorted: " << (is_sorted_flag ? "Yes" : "No") << "\n";
+
+    std::ranges::reverse(vec);
+
+    // 已按倒序排列的向量
+    const bool is_desc_sorted_flag = std::ranges::is_sorted(vec, std::greater<>());
+    std::cout << "Is desc_sorted_flag: " << (is_desc_sorted_flag ? "Yes" : "No") << "\n";
+
+    // 排序是为了确保相同元素相邻，这样才能正确去重
+    // 使用 std::unique 移动相邻的重复元素到末尾，并返回新的结尾
+    // 使用 std::ranges::unique 移动相邻的重复元素到末尾，并返回新的范围
+    auto unique_end = std::ranges::unique(vec);
+
+    // 计算去重后的和
+    const auto new_sum = std::accumulate(vec.begin(), unique_end.begin(), 0);
+    std::cout << "Sum of unique elements: " << new_sum << '\n';
+
+    // 去掉末尾重复元素
+    vec.erase(unique_end.begin(), vec.end());
+
+    // 输出最终去重后的向量的和  new_sum == new_sum1
+    const auto new_sum1 = std::accumulate(vec.begin(), vec.end(), 0);
+    std::cout << "Sum1 of unique elements: " << new_sum1 << '\n';
+
+
+    //std::set_union: 计算两个有序范围的并集。
+    //std::set_intersection: 计算两个有序范围的交集。
+    //std::set_difference: 计算两个有序范围的差集。
+    //std::set_symmetric_difference: 计算两个有序范围的对称差集。
+    std::vector<int> result;
+    std::ranges::set_union(vec.begin(), vec.end(), vec_copy.begin(), vec_copy.end(), std::back_inserter(result));
+    std::cout << "set_union size: " << result.size() << '\n';
+
+    std::vector<int> result1;
+    std::ranges::set_intersection(vec.begin(), vec.end(), vec_copy.begin(), vec_copy.end(), std::back_inserter(result1));
+    std::cout << "set_intersection size: " << result1.size() << '\n';
+
+    std::vector<int> result2;
+    std::ranges::set_difference(vec.begin(), vec.end(), vec_copy.begin(), vec_copy.end(), std::back_inserter(result2));
+    std::cout << "set_difference size: " << result2.size() << '\n';
+
+    std::vector<int> result3;
+    std::ranges::set_symmetric_difference(vec.begin(), vec.end(), vec_copy.begin(), vec_copy.end(), std::back_inserter(result3));
+    std::cout << "set_symmetric_difference size: " << result3.size() << '\n';
+
+
+    Json::Value ret;
+    ret["msg"] = "ok";
+    ret["code"] = 200;
+    co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
+}
+
 
 Task<> OpenApi::aes(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
@@ -545,20 +659,20 @@ Task<> OpenApi::fix(const HttpRequestPtr req, std::function<void(const HttpRespo
     auto v = co_await clientPtr->execSqlCoro("select user_id from xxxxx where  original_number != 0 and op_number != 0  group by user_id having count(1) > 1 order by create_time");
     for (auto && n : v)
     {
-        auto userId = n["user_id"].template as<std::int32_t>();
+        auto userId = n["user_id"]. as<std::int32_t>();
 
         // ....
         auto result = co_await clientPtr->execSqlCoro("select * from xxxxxxxx where original_number != 0 and op_number != 0 and user_id = ? order by create_time desc", userId);
 
         for (std::size_t i = 0; i < result.size(); ++i)
         {
-            auto original_number = result[i]["original_number"].template as<std::int32_t>();
-            auto op_number = result[i]["op_number"].template as<std::int32_t>();
+            auto original_number = result[i]["original_number"]. as<std::int32_t>();
+            auto op_number = result[i]["op_number"]. as<std::int32_t>();
 
             int32_t next_original_number = 0;
             if (i < result.size() - 1)
             {
-                next_original_number = result[i + 1]["original_number"].template as<std::int32_t>();
+                next_original_number = result[i + 1]["original_number"]. as<std::int32_t>();
             }
 
             if ((original_number + op_number) != next_original_number && next_original_number != 0)
