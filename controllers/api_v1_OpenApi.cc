@@ -58,6 +58,7 @@ Task<> OpenApi::algorithm(const HttpRequestPtr req, std::function<void(const Htt
 
     auto vec_copy = vec;
     auto vec_copy1 = vec;
+    auto vec_copy2 = vec;
 
     auto start = std::chrono::high_resolution_clock::now();
     std::ranges::sort(vec);
@@ -78,6 +79,13 @@ Task<> OpenApi::algorithm(const HttpRequestPtr req, std::function<void(const Htt
     elapsed = end - start;
     std::cout << "std::sort std::execution::par: " << elapsed.count() << " seconds\n";
 
+    start = std::chrono::high_resolution_clock::now();
+    // std::execution::par_unseq 是一种并行执行策略，其含义是允许算法在多个线程上并行执行，并且在某些情况下可以使用向量化来优化性能。
+    // 这种策略的主要意义在于可以更充分地利用现代多核处理器和 SIMD（Single Instruction, Multiple Data）指令集，从而加速算法的执行。
+    std::sort(std::execution::par_unseq, vec_copy2.begin(), vec_copy2.end());
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "std::sort std::execution::par_unseq: " << elapsed.count() << " seconds\n";
 
     std::sort(vec.begin() + 2, vec.begin() + 7); // 只排序索引从2到6的元素
 
