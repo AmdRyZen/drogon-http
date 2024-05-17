@@ -3,9 +3,10 @@ void PlaintextCtrl::asyncHandleHttpRequest(const HttpRequestPtr& req, std::funct
 {
     //write your application logic here
     //write your application logic here
-    auto resp = HttpResponse::newHttpResponse();
+    const auto resp = HttpResponse::newHttpResponse();
     resp->setStatusCode(k200OK);
     resp->setContentTypeCode(CT_TEXT_HTML);
     //resp->setBody("Hello World!");
-    callback(std::move(resp));
+    resp->setExpiredTime(0);
+    callback(resp);
 }

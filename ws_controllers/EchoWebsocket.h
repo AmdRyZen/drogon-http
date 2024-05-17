@@ -1,8 +1,9 @@
 #pragma once
 #include <drogon/PubSubService.h>
 #include <drogon/WebSocketController.h>
+
 using namespace drogon;
-class EchoWebsocket : public drogon::WebSocketController<EchoWebsocket>
+class EchoWebsocket final : public WebSocketController<EchoWebsocket>
 {
   public:
     void handleNewMessage(const WebSocketConnectionPtr&,

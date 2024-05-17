@@ -5,7 +5,7 @@
 struct Subscriber
 {
     std::string chatRoomName_;
-    drogon::SubscriberID id_{};
+    SubscriberID id_{};
 };
 
 void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, std::string&& message, const WebSocketMessageType& type)
@@ -13,6 +13,15 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
     //write your application logic here
     try
     {
+        // write your application logic here
+        LOG_DEBUG << "new websocket message:" << message;
+
+        if (type == WebSocketMessageType::Ping)
+        {
+            LOG_DEBUG << "recv a ping";
+            return;
+        }
+
         if (!message.empty())
         {
             bool res;
@@ -50,20 +59,26 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
 
             if (!wsConnPtr->disconnected())
             {
-                drogon::async_run([wsConnPtr, &command, this]() -> drogon::Task<> {
-                    std::string data = co_await redisUtils::getCoroRedisValue(command.str());
-                    std::cout << "data: " << data << std::endl;
-                    auto& s = wsConnPtr->getContextRef<Subscriber>();
-                    chatRooms_.publish(s.chatRoomName_, "ID= " + std::to_string(s.id_) + " buff ");
+                // 获取Subscriber引用
+                const auto& subscriber = wsConnPtr->getContextRef<Subscriber>();
+                // 使用结构化绑定提取成员变量
+                const auto& [chatRoomName, id] = subscriber;
+
+                async_run([commandStr = command.str(), chatRoomName, this]() -> drogon::Task<>
+                {
+                    try
+                    {
+                        //const std::string data = co_await redisUtils::getCoroRedisValue(commandStr);
+                        chatRooms_.publish(chatRoomName, "data = ");
+                    }
+                    catch (const std::exception& e)
+                    {
+                        std::cerr << "Error in async task: " << e.what() << std::endl;
+                    }
                     co_return;
                 });
             }
             command.clear();
-            /* std::optional<std::string> oi = redisUtils::getRedisValue(command.str());
-            if (oi) {
-                auto &s = wsConnPtr->getContextRef<Subscriber>();
-                chatRooms_.publish(s.chatRoomName_, oi.value());
-            }*/
         }
         else
         {
@@ -99,7 +114,7 @@ void EchoWebsocket::handleConnectionClosed(const WebSocketConnectionPtr& wsConnP
     //write your application logic here
     try
     {
-        std::cout << "handleConnectionClosed" << std::endl;
+        //std::cout << "handleConnectionClosed" << std::endl;
         auto& s = wsConnPtr->getContextRef<Subscriber>();
         chatRooms_.unsubscribe(s.chatRoomName_, s.id_);
     }
