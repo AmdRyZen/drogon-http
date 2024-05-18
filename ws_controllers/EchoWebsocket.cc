@@ -1,6 +1,10 @@
 #include "EchoWebsocket.h"
 #include "utils/redisUtils.h"
 #include "boost/format.hpp"
+#include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
+
+using namespace rapidjson;
 
 struct Subscriber
 {
@@ -14,9 +18,7 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
     try
     {
         // write your application logic here
-        LOG_DEBUG << "new websocket message:" << message;
-
-        if (type == WebSocketMessageType::Ping)
+        if (type == WebSocketMessageType::Ping || type == WebSocketMessageType::Pong)
         {
             LOG_DEBUG << "recv a ping";
             return;
@@ -24,7 +26,7 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
 
         if (!message.empty())
         {
-            bool res;
+            /*bool res;
             JSONCPP_STRING errs;
             Json::Value root, lang, mail;
             Json::CharReaderBuilder readerBuilder;
@@ -33,29 +35,26 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
             res = jsonReader->parse(message.c_str(), message.c_str() + message.length(), &root, &errs);
             if (!res || !errs.empty())
             {
-                //std::cout << "parseJson err. " << errs << std::endl;
+                return;
+            }*/
+
+            // 创建 RapidJSON 文档对象
+            Document document;
+            if (document.Parse(message.c_str()).HasParseError()) {
                 return;
             }
 
-            /*std::cout << "key: " << root["key"].asString() << std::endl;
-            std::cout << "Name: " << root["Name"].asString() << std::endl;
-            std::cout << "Age: " << root["Age"].asInt() << std::endl;
-            lang = root["Language"];
-            std::cout << "Language: ";
-            for (int i = 0; i < lang.size(); ++i) {
-                std::cout << lang[i] << " ";
+            // 判断 JSON 是否为空
+            if (document.IsNull()) {
+                std::cerr << "JSON is empty!" << std::endl;
+                return;
             }
-            std::cout << std::endl;
-            mail = root["E-mail"];
-            std::cout << "Netease: " << mail["Netease"].asString() << std::endl;
-            std::cout << "Hotmail: " << mail["Hotmail"].asString() << std::endl;*/
 
-            /*std::stringstream command;
-            command << "get " << root["key"].asString().c_str();*/
-            // 创建一个格式化字符串
-            boost::format command("get %s");
-            // 按顺序绑定参数
-            command % root["key"].asString();
+            std::string command;
+            // 解析并输出 JSON 数据
+            if (document.HasMember("key") && document["key"].IsString()) {
+                command = std::format("get {}", document["key"].GetString());
+            }
 
             if (!wsConnPtr->disconnected())
             {
@@ -64,12 +63,16 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                 // 使用结构化绑定提取成员变量
                 const auto& [chatRoomName, id] = subscriber;
 
-                async_run([commandStr = command.str(), chatRoomName, this]() -> drogon::Task<>
+                async_run([command, chatRoomName, this]() -> drogon::Task<>
                 {
                     try
                     {
-                        //const std::string data = co_await redisUtils::getCoroRedisValue(commandStr);
-                        chatRooms_.publish(chatRoomName, "data = ");
+                        std::string data;
+                        if (!command.empty())
+                        {
+                            data = co_await redisUtils::getCoroRedisValue(command);
+                        }
+                        chatRooms_.publish(chatRoomName, std::format("data = {}", data) );
                     }
                     catch (const std::exception& e)
                     {
@@ -115,8 +118,12 @@ void EchoWebsocket::handleConnectionClosed(const WebSocketConnectionPtr& wsConnP
     try
     {
         //std::cout << "handleConnectionClosed" << std::endl;
-        auto& s = wsConnPtr->getContextRef<Subscriber>();
-        chatRooms_.unsubscribe(s.chatRoomName_, s.id_);
+        // 获取Subscriber引用
+        const auto& subscriber = wsConnPtr->getContextRef<Subscriber>();
+        // 使用结构化绑定提取成员变量
+        const auto& [chatRoomName, id] = subscriber;
+
+        chatRooms_.unsubscribe(chatRoomName, id);
     }
     catch (...)
     {

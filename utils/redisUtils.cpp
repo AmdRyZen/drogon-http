@@ -3,7 +3,6 @@
 //
 #include "redisUtils.h"
 #include <drogon/drogon.h>
-#include <iostream>
 #include <memory>
 
 std::optional<std::string> redisUtils::getRedisValue(const std::string& command)
