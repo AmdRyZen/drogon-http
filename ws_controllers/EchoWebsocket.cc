@@ -14,65 +14,52 @@ struct Subscriber
 
 void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, std::string&& message, const WebSocketMessageType& type)
 {
-    //write your application logic here
     try
     {
-        // write your application logic here
-        if (type == WebSocketMessageType::Ping || type == WebSocketMessageType::Pong)
+        if (type == WebSocketMessageType::Ping)
         {
+            wsConnPtr->send("pong", WebSocketMessageType::Pong);
             LOG_DEBUG << "recv a ping";
             return;
         }
 
         if (!message.empty())
         {
-            /*bool res;
-            JSONCPP_STRING errs;
-            Json::Value root, lang, mail;
-            Json::CharReaderBuilder readerBuilder;
-
-            std::unique_ptr<Json::CharReader> const jsonReader(readerBuilder.newCharReader());
-            res = jsonReader->parse(message.c_str(), message.c_str() + message.length(), &root, &errs);
-            if (!res || !errs.empty())
-            {
-                return;
-            }*/
-
-            // 创建 RapidJSON 文档对象
             Document document;
-            if (document.Parse(message.c_str()).HasParseError()) {
+            if (document.Parse(message.c_str()).HasParseError())
+            {
                 return;
             }
 
-            // 判断 JSON 是否为空
-            if (document.IsNull()) {
+            if (document.IsNull())
+            {
                 std::cerr << "JSON is empty!" << std::endl;
                 return;
             }
 
             std::string command;
-            // 解析并输出 JSON 数据
-            if (document.HasMember("key") && document["key"].IsString()) {
+            if (document.HasMember("key") && document["key"].IsString())
+            {
                 command = std::format("get {}", document["key"].GetString());
             }
 
+            // 在处理用户退出时检查连接状态
             if (!wsConnPtr->disconnected())
             {
-                // 获取Subscriber引用
                 const auto& subscriber = wsConnPtr->getContextRef<Subscriber>();
-                // 使用结构化绑定提取成员变量
                 const auto& [chatRoomName, id] = subscriber;
 
-                async_run([command, chatRoomName, this]() -> drogon::Task<>
+                auto sharedThis = shared_from_this();
+                async_run([command, chatRoomName, sharedThis]() -> Task<>
                 {
                     try
                     {
-                        std::string data;
+                        std::string_view data;
                         if (!command.empty())
                         {
                             data = co_await redisUtils::getCoroRedisValue(command);
                         }
-                        chatRooms_.publish(chatRoomName, std::format("data = {}", data) );
+                        sharedThis->chatRooms_.publish(chatRoomName, std::format("data = {}", data));
                     }
                     catch (const std::exception& e)
                     {
@@ -82,10 +69,6 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                 });
             }
             command.clear();
-        }
-        else
-        {
-            //std::cout << "message = empty" << std::endl;
         }
     }
     catch (...)
@@ -122,8 +105,13 @@ void EchoWebsocket::handleConnectionClosed(const WebSocketConnectionPtr& wsConnP
         const auto& subscriber = wsConnPtr->getContextRef<Subscriber>();
         // 使用结构化绑定提取成员变量
         const auto& [chatRoomName, id] = subscriber;
-
+        // 退出所有房间
         chatRooms_.unsubscribe(chatRoomName, id);
+        // 清理资源
+        wsConnPtr->clearContext();
+
+        std::cout << "handleConnectionClosed id = " << id << std::endl;
+        std::cout << "handleConnectionClosed chatRoomName = " << chatRoomName << std::endl;
     }
     catch (...)
     {

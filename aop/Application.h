@@ -17,7 +17,7 @@
 
 inline TrieService trieService;
 
-inline ThreadPool pool(4);
+inline ThreadPool pool(2);
 
 namespace App {
 constexpr char drogon[] = "\n"
@@ -103,6 +103,11 @@ class Application final
 
 Application::Application()
 {
+    // 创建一个定时器，每隔10秒执行一次
+    /*drogon::HttpAppFramework::instance().getLoop()->runEvery(10.0, [] {
+        std::cout << "定时器触发了" << std::endl;
+    });*/
+
     drogon::app().registerBeginningAdvice([]() {
         std::cout << drogon << std::endl;
         std::cout << "A utility for drogon" << std::endl;

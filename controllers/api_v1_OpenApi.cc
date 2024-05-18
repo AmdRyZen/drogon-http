@@ -444,10 +444,8 @@ void OpenApi::curlPost(const HttpRequestPtr& req, std::function<void(const HttpR
 Task<> OpenApi::getValue(const HttpRequestPtr req,
                          std::function<void(const HttpResponsePtr&)> callback)
 {
-    std::stringstream command;
-    command << "get "
-            << "aa";
-    const Json::Value redis_value = co_await redisUtils::getCoroRedisValue(command.str());
+    std::string command = std::format("get {}", "aa");
+    const Json::Value redis_value = co_await redisUtils::getCoroRedisValue(command);
 
     Json::Value ret;
     ret["msg"] = "ok";

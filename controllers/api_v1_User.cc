@@ -218,10 +218,8 @@ Task<> User::getInfo(const HttpRequestPtr req,
         std::cerr << "error3:" << e.what() << std::endl;
     }
 
-    std::stringstream command;
-    command << "get " << "aa";
-
-    redis_value = co_await redisUtils::getCoroRedisValue(command.str());
+    std::string command = std::format("get {}", "aa");
+    redis_value = co_await redisUtils::getCoroRedisValue(command);
 
 
     //验证token有效性等

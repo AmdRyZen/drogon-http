@@ -1,7 +1,7 @@
 
 {
   "app": {
-    "number_of_threads": 0,
+    "number_of_threads": 8,
     "enable_session": false,
     "session_timeout": 0,
     "document_root": "./",

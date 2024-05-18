@@ -38,5 +38,5 @@ drogon::Task<std::string> redisUtils::getCoroRedisValue(const std::string& comma
     {
         co_return "";
     }
-    co_return data.asString();
+    co_return std::move(data.asString());
 }
