@@ -135,7 +135,7 @@ add_executable(
         controllers/api_v1_User.cc controllers/api_v1_User.h
         controllers/api_v1_OpenApi.cc controllers/api_v1_OpenApi.h
         utils/redisUtils.h utils/redisUtils.cpp
-        ws_controllers/EchoWebsocket.h ws_controllers/EchoWebsocket.cc
+        ws_controllers/ChatWebsocket.h ws_controllers/ChatWebsocket.cc
         service/SbcConvertService.h service/impl/SbcConvertServiceImpl.cpp
         service/TrieService.h service/impl/TrieServiceImpl.cpp
         #utils/base64Utils.h utils/base64Utils.c

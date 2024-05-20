@@ -3,7 +3,7 @@
 #include <drogon/WebSocketController.h>
 
 using namespace drogon;
-class EchoWebsocket final : public WebSocketController<EchoWebsocket>, public std::enable_shared_from_this<EchoWebsocket>
+class ChatWebsocket final : public WebSocketController<ChatWebsocket>
 {
 public:
     void handleNewMessage(const WebSocketConnectionPtr&,
@@ -15,7 +15,7 @@ public:
     WS_PATH_LIST_BEGIN
     // list path definitions here;
     // WS_PATH_ADD("/path","filter1","filter2",...);
-    WS_PATH_ADD("/echo");
+    WS_PATH_ADD("/chat");
     WS_PATH_LIST_END
 
 private:

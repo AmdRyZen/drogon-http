@@ -1,4 +1,4 @@
-#include "EchoWebsocket.h"
+#include "ChatWebsocket.h"
 #include "utils/redisUtils.h"
 #include "boost/format.hpp"
 #include "rapidjson/document.h"
@@ -12,7 +12,7 @@ struct Subscriber
     SubscriberID id_{};
 };
 
-void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, std::string&& message, const WebSocketMessageType& type)
+void ChatWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, std::string&& message, const WebSocketMessageType& type)
 {
     try
     {
@@ -56,8 +56,8 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                 const auto& subscriber = wsConnPtr->getContextRef<Subscriber>();
                 const auto& [chatRoomName, id] = subscriber;
 
-                auto sharedThis = shared_from_this();
-                async_run([action, msgContent, command, chatRoomName, id, sharedThis]() -> Task<>
+                //auto sharedThis = shared_from_this();
+                async_run([action, msgContent, command, chatRoomName, id, this]() -> Task<>
                 {
                     try
                     {
@@ -73,7 +73,7 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                             {
                                 // 发送消息到聊天室
                                const std::string formattedMessage = std::format(R"({{"sender": "{}", "message": "{} ====> {}}})", id, msgContent, data);
-                               sharedThis->chatRooms_.publish(chatRoomName, formattedMessage);
+                               chatRooms_.publish(chatRoomName, formattedMessage);
                             }
                             // 其他操作...
                         }
@@ -92,14 +92,20 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
         std::cout << "handleNewMessage ..." << std::endl;
     }
 }
-void EchoWebsocket::handleNewConnection(const HttpRequestPtr& req, const WebSocketConnectionPtr& wsConnPtr)
+void ChatWebsocket::handleNewConnection(const HttpRequestPtr& req, const WebSocketConnectionPtr& wsConnPtr)
 {
     //write your application logic here
     std::cout << "handleNewConnection" << std::endl;
 
     Subscriber s;
     s.chatRoomName_ = req->getHeader("room_name");
-    const std::string_view userName_ = req->getHeader("name");
+    if (s.chatRoomName_.empty()) {
+        s.chatRoomName_ = "default_room"; // 设置默认的聊天室名称
+    }
+    std::string userName_ = req->getHeader("name");
+    if (userName_.empty()) {
+        userName_ = "default_name"; // 设置默认的名称
+    }
     // 处理用户加入聊天室
     wsConnPtr->send(std::format("欢迎 {} 加入我们 {}", userName_, s.chatRoomName_));
     s.id_ = chatRooms_.subscribe(s.chatRoomName_,
@@ -113,7 +119,7 @@ void EchoWebsocket::handleNewConnection(const HttpRequestPtr& req, const WebSock
     std::cout << "chatRoomName = " << s.chatRoomName_ << std::endl;
     wsConnPtr->setContext(std::make_shared<Subscriber>(std::move(s)));
 }
-void EchoWebsocket::handleConnectionClosed(const WebSocketConnectionPtr& wsConnPtr)
+void ChatWebsocket::handleConnectionClosed(const WebSocketConnectionPtr& wsConnPtr)
 {
     //write your application logic here
     try
@@ -125,6 +131,12 @@ void EchoWebsocket::handleConnectionClosed(const WebSocketConnectionPtr& wsConnP
         const auto& [chatRoomName, id] = subscriber;
         // 退出所有房间
         chatRooms_.unsubscribe(chatRoomName, id);
+        // todo 暂时不确定是否需要
+        if (chatRooms_.size() == 0)
+        {
+            std::cout << "chatRooms_.size() = " << chatRooms_.size() << std::endl;
+            chatRooms_.clear();
+        }
         // 清理资源
         wsConnPtr->clearContext();
 
