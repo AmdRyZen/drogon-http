@@ -9,11 +9,13 @@ export let options = {
 };
 
 export default function () {
-    const url = 'ws://127.0.0.1:9090/echo?room_name=001'; // WebSocket URL
+    const url = 'ws://127.0.0.1:9090/echo?room_name=001聊天室&name=cat'; // WebSocket URL
     const params = { tags: { my_tag: 'websocket' } };
 
     const message = JSON.stringify({
         "key1": "aa",
+        "action": "message",
+        "msgContent": "hahahahh"
         /* "Name": "Liming",
         "Age": 26,
         "Language": [

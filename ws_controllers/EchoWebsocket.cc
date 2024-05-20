@@ -43,6 +43,13 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                 command = std::format("get {}", document["key"].GetString());
             }
 
+            std::string action;
+            if (document.HasMember("action") && document["action"].IsString())
+            {
+                action = document["action"].GetString();
+            }
+            std::string msgContent = document["msgContent"].GetString();
+
             // 在处理用户退出时检查连接状态
             if (!wsConnPtr->disconnected())
             {
@@ -50,7 +57,7 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                 const auto& [chatRoomName, id] = subscriber;
 
                 auto sharedThis = shared_from_this();
-                async_run([command, chatRoomName, sharedThis]() -> Task<>
+                async_run([action, msgContent, command, chatRoomName, id, sharedThis]() -> Task<>
                 {
                     try
                     {
@@ -59,7 +66,17 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                         {
                             data = co_await redisUtils::getCoroRedisValue(command);
                         }
-                        sharedThis->chatRooms_.publish(chatRoomName, std::format("data = {}", data));
+
+                        if (!action.empty())
+                        {
+                           if (action == "message")
+                            {
+                                // 发送消息到聊天室
+                               const std::string formattedMessage = std::format(R"({{"sender": "{}", "message": "{} ====> {}}})", id, msgContent, data);
+                               sharedThis->chatRooms_.publish(chatRoomName, formattedMessage);
+                            }
+                            // 其他操作...
+                        }
                     }
                     catch (const std::exception& e)
                     {
@@ -68,7 +85,6 @@ void EchoWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                     co_return;
                 });
             }
-            command.clear();
         }
     }
     catch (...)
@@ -82,8 +98,10 @@ void EchoWebsocket::handleNewConnection(const HttpRequestPtr& req, const WebSock
     std::cout << "handleNewConnection" << std::endl;
 
     Subscriber s;
-    s.chatRoomName_ = req->getParameter("room_name");
-    wsConnPtr->send(s.chatRoomName_);
+    s.chatRoomName_ = req->getHeader("room_name");
+    const std::string_view userName_ = req->getHeader("name");
+    // 处理用户加入聊天室
+    wsConnPtr->send(std::format("欢迎 {} 加入我们 {}", userName_, s.chatRoomName_));
     s.id_ = chatRooms_.subscribe(s.chatRoomName_,
                                  [wsConnPtr](const std::string& topic,
                                              const std::string& message) {
