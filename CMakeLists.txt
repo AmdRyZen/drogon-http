@@ -130,7 +130,7 @@ include_directories(${PROTO_GEN_CXX_INCLUDE_DIRS}) # cpp]]
 
 
 add_executable(
-        ${PROJECT_NAME} main.cc
+        ${PROJECT_NAME} main.cc utils/sql.h
         controllers/PlaintextCtrl.cc controllers/PlaintextCtrl.h
         controllers/api_v1_User.cc controllers/api_v1_User.h
         controllers/api_v1_OpenApi.cc controllers/api_v1_OpenApi.h
@@ -157,7 +157,7 @@ add_executable(
 #
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
-find_package(mimalloc 2.1.6 REQUIRED)
+find_package(mimalloc 2.1.7 REQUIRED)
 find_package(Boost 1.85.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon Boost::boost mimalloc #[[proto_gen_cxx]])
 

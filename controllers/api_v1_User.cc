@@ -7,13 +7,137 @@
 #include <fstream>
 #include <drogon/drogon.h>
 #include "models/XxlJobInfo.h"
-#include <drogon/orm/Mapper.h>
+#include "utils/sql.h"
 #include "service/SbcConvertService.h"
 
 using namespace api::v1;
 using namespace drogon_model::xxl_job;
 using namespace drogon::orm;
 using namespace drogon;
+using namespace sql;
+
+
+Task<> User::buildSql(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
+{
+    Json::Value data;
+    try
+    {
+         // Insert
+        InsertModel i;
+        i.insert("score", 100)
+                ("name", std::string("six"))
+                ("age", 20)
+                ("address", "beijing")
+                ("create_time", nullptr)
+            .into("user");
+        assert(i.str() ==
+                "insert into user(score, name, age, address, create_time) values(100, 'six', 20, 'beijing', null)");
+
+        // Insert with named parameters
+        InsertModel iP;
+        Param score = ":score";
+        Param name = ":name";
+        Param age = ":age";
+        Param address = ":address";
+        Param create_time = ":create_time";
+        iP.insert("score", score)
+                ("name", name)
+                ("age", age)
+                ("address", address)
+                ("create_time", create_time)
+            .into("user");
+        assert(iP.str() ==
+                "insert into user(score, name, age, address, create_time) values(:score, :name, :age, :address, :create_time)");
+
+        // Select
+        SelectModel s;
+        s.select("id as user_id", "age", "name", "address")
+            .distinct()
+            .from("user")
+            .join("score")
+            .on(column("user.id") == column("score.id") and column("score.id") > 60)
+            .where(column("score") > 60 and (column("age") >= 20 or column("address").is_not_null()))
+            // .where(column("score") > 60 && (column("age") >= 20 || column("address").is_not_null()))
+            .group_by("age")
+            .having(column("age") > 10)
+            .order_by("age desc")
+            .limit(10)
+            .offset(1);
+        assert(s.str() ==
+                "select distinct id as user_id, age, name, address from user join score on (user.id = score.id) and (score.id > 60) where (score > 60) and ((age >= 20) or (address is not null)) group by age having age > 10 order by age desc limit 10 offset 1");
+
+        // Update
+        std::vector<int> a = {1, 2, 3};
+        UpdateModel u;
+        u.update("user")
+            .set("name", "ddc")
+                ("age", 18)
+                ("score", nullptr)
+                ("address", "beijing")
+            .where(column("id").in(a));
+        assert(u.str() ==
+                "update user set name = 'ddc', age = 18, score = null, address = 'beijing' where id in (1, 2, 3)");
+
+        // Update with positional parameters
+        UpdateModel uP;
+        Param mark = "?";
+        uP.update("user")
+            .set("name", mark)
+                ("age", mark)
+                ("score", mark)
+                ("address", mark)
+            .where(column("id").in(a));
+        assert(uP.str() ==
+                "update user set name = ?, age = ?, score = ?, address = ? where id in (1, 2, 3)");
+
+        // Delete
+        DeleteModel d;
+        d._delete()
+            .from("user")
+            .where(column("id") == 1);
+        assert(d.str() ==
+                "delete from user where id = 1");
+
+
+        // 基本 SQL 查询语句
+        std::string baseCountSql = "SELECT count(1) FROM xxl_job_info WHERE 1=1";
+
+        SelectModel select;
+        select.select("*")
+            .distinct()
+            .from("xxl_job_info")
+            .order_by("id desc")
+            .limit(10);
+        SelectModel selectCount;
+        selectCount.select("count(1) as count")
+            .from("xxl_job_info");
+        if constexpr (true) [[likely]]
+        {
+            select.where(column("id") < 3 and column("author") != "xxx");
+            select.where(column("id") > 0);
+            selectCount.where(column("id") < 3 and column("author") != "xxx");
+        }
+
+        std::cout << "select: " << select.str() << std::endl;
+        std::cout << "selectCount: " << selectCount.str() << std::endl;
+
+        auto clientPtr = drogon::app().getFastDbClient();
+
+        auto xxx = co_await clientPtr->execSqlCoro(select.str());
+        auto xxxCount = co_await clientPtr->execSqlCoro(selectCount.str());
+        std::cout << "xxx: " << xxx.size() << std::endl;
+        std::cout << "xxxCount: " <<  xxxCount[0][0].as<std::size_t>() << std::endl;
+
+    }
+    catch (...)
+    {
+        data["msg"] = "error";
+    }
+    data["msg"] = "ok";
+    data["code"] = 200;
+    co_return callback(HttpResponse::newHttpJsonResponse(std::move(data)));
+
+}
 
 //add definition of your processing function here
 void User::login(const HttpRequestPtr& req,
@@ -35,7 +159,7 @@ void User::login(const HttpRequestPtr& req,
         LOG_INFO << "auto json = req.getJsonObject();= " << (*json)["name"].asString() << " ";
         // ...
 
-        auto token = jwt::create()
+        const auto token = jwt::create()
                          .set_issuer("auth0")
                          .set_type("JWS")
                          .set_payload_claim("user_id", jwt::claim(std::string("123456")))

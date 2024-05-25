@@ -10,6 +10,7 @@ class User final : public drogon::HttpController<User>
 {
   public:
     METHOD_LIST_BEGIN
+    METHOD_ADD(User::buildSql, "/buildSql", Get);
     METHOD_ADD(User::login, "/login?userId={1}&passwd={2}", Post);
     METHOD_ADD(User::getInfo, "/{1}/getInfo?token={2}", Get, "drogon::LoginFilter");
     METHOD_ADD(User::getBanWord, "/getBanWord?word={1}", Get);
@@ -20,6 +21,8 @@ class User final : public drogon::HttpController<User>
     //METHOD_ADD(User::your_method_name,"/{1}/{2}/list",Get);//path is /api/v1/User/{arg1}/{arg2}/list
     //ADD_METHOD_TO(User::your_method_name,"/absolute/path/{1}/{2}/list",Get);//path is /absolute/path/{arg1}/{arg2}/list
     METHOD_LIST_END
+
+    static Task<> buildSql(HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback);
 
     static void login(const HttpRequestPtr& req,
                       std::function<void(const HttpResponsePtr&)>&& callback,
