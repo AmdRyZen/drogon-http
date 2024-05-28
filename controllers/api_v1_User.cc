@@ -9,6 +9,8 @@
 #include "models/XxlJobInfo.h"
 #include "utils/sql.h"
 #include "service/SbcConvertService.h"
+#include <algorithm>
+#include <execution>
 
 using namespace api::v1;
 using namespace drogon_model::xxl_job;
@@ -280,6 +282,8 @@ Task<> User::getInfo(const HttpRequestPtr req,
         {
             std::cout << result.size() << " rows selected!" << std::endl;
             int i = 0;
+
+            //#pragma omp parallel for
             for (const auto& row : result)
             {
                 std::cout << i++ << ": author is " << row["author"].as<std::string>() << std::endl;
@@ -293,7 +297,7 @@ Task<> User::getInfo(const HttpRequestPtr req,
         auto result = co_await clientPtr->execSqlCoro(dynamicSql);
         auto count = co_await clientPtr->execSqlCoro(dynamicCountSql);
 
-        std::for_each(result.begin(), result.end(), [&item, &data](const auto& row) {
+        std::for_each(std::execution::par, result.begin(), result.end(), [&item, &data](const auto& row) {
             item["id"] = row["id"].template as<std::int64_t>();
             item["author"] = row["author"].template as<std::string>();
             item["job_desc"] = row["job_desc"].template as<std::string>();

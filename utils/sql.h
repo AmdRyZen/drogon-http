@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <vector>
 #include <string>
 
@@ -10,24 +11,26 @@ class column;
 class Param
 {
 public:
-    Param (const std::string &param) : _param(param) {}
+    explicit Param (std::string param) : _param(std::move(param)) {}
     Param (const char *param) : _param(param) {}
 
-public:
     std::string operator()() const { return param(); }
-    inline std::string param() const { return _param; }
+    [[nodiscard]] std::string param() const { return _param; }
 
 private:
     const std::string _param;
 };
 
 template <typename T>
-inline std::string to_value(const T& data) {
+std::string to_value(const T& data) {
     return std::to_string(data);
 }
 
 template <size_t N>
-inline std::string to_value(char const(&data)[N]) {
+std::string to_value(char const(&data)[N]) {
+    if (data == nullptr) {
+        return "''";  // 处理空指针的情况
+    }
     std::string str("'");
     str.append(data);
     str.append("'");
@@ -36,6 +39,10 @@ inline std::string to_value(char const(&data)[N]) {
 
 template <>
 inline std::string to_value<std::string>(const std::string& data) {
+    if (data.empty()) {
+        //std::cout << "Received nullptr" << std::endl;
+        return "''";  // 处理空指针的情况
+    }
     std::string str("'");
     str.append(data);
     str.append("'");
@@ -44,11 +51,16 @@ inline std::string to_value<std::string>(const std::string& data) {
 
 template <>
 inline std::string to_value<const char*>(const char* const& data) {
+    if (data == nullptr) {
+        //std::cout << "Received nullptr" << std::endl;
+        return "''";  // 处理空指针的情况
+    }
     std::string str("'");
     str.append(data);
     str.append("'");
     return str;
 }
+
 
 template <>
 inline std::string to_value<Param>(const Param& data) {
@@ -73,9 +85,9 @@ static std::string sql::to_value<time_t>(const time_t& data) {
 
 template <typename T>
 void join_vector(std::string& result, const std::vector<T>& vec, const char* sep) {
-    size_t size = vec.size();
-    for(size_t i = 0; i < size; ++i) {
-        if(i < size - 1) {
+    //size_t size = vec.size();
+    for(size_t i = 0; i < vec.size(); ++i) {
+        if(i < vec.size() - 1) {
             result.append(vec[i]);
             result.append(sep);
         } else {
@@ -87,10 +99,10 @@ void join_vector(std::string& result, const std::vector<T>& vec, const char* sep
 class column
 {
 public:
-    column(const std::string& column) {
+    explicit column(const std::string& column) {
         _cond = column;
     }
-    virtual ~column() {}
+    virtual ~column() = default;
 
     column& as(const std::string& s) {
         _cond.append(" as ");
@@ -110,14 +122,14 @@ public:
 
     template <typename T>
     column& in(const std::vector<T>& args) {
-        size_t size = args.size();
-        if(size == 1) {
+        // const size_t size = args.size();
+        if(args.size() == 1) {
             _cond.append(" = ");
             _cond.append(to_value(args[0]));
         } else {
             _cond.append(" in (");
-            for(size_t i = 0; i < size; ++i) {
-                if(i < size - 1) {
+            for(size_t i = 0; i < args.size(); ++i) {
+                if(i < args.size() - 1) {
                     _cond.append(to_value(args[i]));
                     _cond.append(", ");
                 } else {
@@ -131,14 +143,14 @@ public:
 
     template <typename T>
     column& not_in(const std::vector<T>& args) {
-        size_t size = args.size();
-        if(size == 1) {
+        //const size_t size = args.size();
+        if(args.size() == 1) {
             _cond.append(" != ");
             _cond.append(to_value(args[0]));
         } else {
             _cond.append(" not in (");
-            for(size_t i = 0; i < size; ++i) {
-                if(i < size - 1) {
+            for(size_t i = 0; i < args.size(); ++i) {
+                if(i < args.size() - 1) {
                     _cond.append(to_value(args[i]));
                     _cond.append(", ");
                 } else {
@@ -150,7 +162,7 @@ public:
         return *this;
     }
 
-    column& operator &&(column& condition) {
+    column& operator &&(column& condition) const {
         std::string str("(");
         str.append(_cond);
         str.append(") and (");
@@ -160,7 +172,7 @@ public:
         return condition;
     }
 
-    column& operator ||(column& condition) {
+    column& operator ||(column& condition) const {
         std::string str("(");
         str.append(_cond);
         str.append(") or (");
@@ -236,11 +248,12 @@ public:
         return *this;
     }
 
-    const std::string& str() const {
+    [[nodiscard]] const std::string& str() const {
         return _cond;
     }
 
-    operator bool() {
+    explicit operator bool() const
+    {
         return true;
     }
 private:
@@ -253,28 +266,27 @@ inline std::string to_value<column>(const column& data) {
 }
 
 
-class SqlModel 
+class SqlModel
 {
 public:
-    SqlModel() {}
-    virtual ~SqlModel() {}
+    SqlModel() = default;
+    virtual ~SqlModel() = default;
 
     virtual const std::string& str() = 0;
     const std::string& last_sql() {
         return _sql;
     }
-private:
     SqlModel(const SqlModel& m) = delete;
     SqlModel& operator =(const SqlModel& data) = delete;
 protected:
     std::string _sql;
 };
 
-class SelectModel : public SqlModel
+class SelectModel final : public SqlModel
 {
 public:
     SelectModel() : _distinct(false) {}
-    virtual ~SelectModel() {}
+    ~SelectModel() override = default;
 
     template <typename... Args>
     SelectModel& select(const std::string& str, Args&&... columns) {
@@ -304,7 +316,7 @@ public:
         from(tables...);
         return *this;
     }
-    
+
     // for recursion
     SelectModel& from() {
         return *this;
@@ -416,7 +428,7 @@ public:
         return *this;
     }
 
-    virtual const std::string& str() override {
+    const std::string& str() override {
         _sql.clear();
         _sql.append("select ");
         if(_distinct) {
@@ -499,11 +511,11 @@ protected:
 
 
 
-class InsertModel : public SqlModel
+class InsertModel final : public SqlModel
 {
 public:
-    InsertModel() {}
-    virtual ~InsertModel() {}
+    InsertModel() = default;
+    ~InsertModel() override = default;
 
     template <typename T>
     InsertModel& insert(const std::string& c, const T& data) {
@@ -522,12 +534,12 @@ public:
         return *this;
     }
 
-    InsertModel& replace(bool var) {
+    InsertModel& replace(const bool var) {
         _replace = var;
         return *this;
     }
 
-    virtual const std::string& str() override {
+    const std::string& str() override {
         _sql.clear();
         std::string v_ss;
 
@@ -540,7 +552,7 @@ public:
         _sql.append(_table_name);
         _sql.append("(");
         v_ss.append(" values(");
-        size_t size = _columns.size();
+        const size_t size = _columns.size();
         for(size_t i = 0; i < size; ++i) {
             if(i < size - 1) {
                 _sql.append(_columns[i]);
@@ -565,7 +577,7 @@ public:
         return *this;
     }
 
-    friend inline std::ostream& operator<< (std::ostream& out, InsertModel& mod) {
+    friend std::ostream& operator<< (std::ostream& out, InsertModel& mod) {
         out<<mod.str();
         return out;
     }
@@ -580,16 +592,16 @@ protected:
 template <>
 inline InsertModel& InsertModel::insert(const std::string& c, const std::nullptr_t&) {
     _columns.push_back(c);
-    _values.push_back("null");
+    _values.emplace_back("null");
     return *this;
 }
 
 
-class UpdateModel : public SqlModel
+class UpdateModel final : public SqlModel
 {
 public:
-    UpdateModel() {}
-    virtual ~UpdateModel() {}
+    UpdateModel() = default;
+    ~UpdateModel() override = default;
 
     UpdateModel& update(const std::string& table_name) {
         _table_name = table_name;
@@ -620,14 +632,13 @@ public:
         return *this;
     }
 
-    virtual const std::string& str() override {
+    const std::string& str() override {
         _sql.clear();
         _sql.append("update ");
         _sql.append(_table_name);
         _sql.append(" set ");
         join_vector(_sql, _set_columns, ", ");
-        size_t size = _where_condition.size();
-        if(size > 0) {
+        if(!_where_condition.empty()) {
             _sql.append(" where ");
             join_vector(_sql, _where_condition, " and ");
         }
@@ -640,7 +651,7 @@ public:
         _where_condition.clear();
         return *this;
     }
-    friend inline std::ostream& operator<< (std::ostream& out, UpdateModel& mod) {
+    friend std::ostream& operator<< (std::ostream& out, UpdateModel& mod) {
         out<<mod.str();
         return out;
     }
@@ -660,11 +671,11 @@ inline UpdateModel& UpdateModel::set(const std::string& c, const std::nullptr_t&
 }
 
 
-class DeleteModel : public SqlModel
+class DeleteModel final : public SqlModel
 {
 public:
-    DeleteModel() {}
-    virtual ~DeleteModel() {}
+    DeleteModel() = default;
+    ~DeleteModel() override = default;
 
     DeleteModel& _delete() {
         return *this;
@@ -681,7 +692,7 @@ public:
         from(tables...);
         return *this;
     }
-    
+
     // for recursion
     DeleteModel& from() {
         return *this;
@@ -697,12 +708,11 @@ public:
         return *this;
     }
 
-    virtual const std::string& str() override {
+    const std::string& str() override {
         _sql.clear();
         _sql.append("delete from ");
         _sql.append(_table_name);
-        size_t size = _where_condition.size();
-        if(size > 0) {
+        if(!_where_condition.empty()) {
             _sql.append(" where ");
             join_vector(_sql, _where_condition, " and ");
         }
@@ -714,7 +724,7 @@ public:
         _where_condition.clear();
         return *this;
     }
-    friend inline std::ostream& operator<< (std::ostream& out, DeleteModel& mod) {
+    friend std::ostream& operator<< (std::ostream& out, DeleteModel& mod) {
         out<<mod.str();
         return out;
     }

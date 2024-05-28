@@ -623,7 +623,10 @@ Task<> OpenApi::threadPool(const HttpRequestPtr req, std::function<void(const Ht
     if (res < 0)
         std::cout << "foo 小于 bar" << std::endl;
     else if (res > 0)
+    {
+        [[unreachable]];
         std::cout << "foo 大于 bar" << std::endl;
+    }
     else  // (res == 0)
         std::cout << "foo 与 bar 相等" << std::endl;
 
