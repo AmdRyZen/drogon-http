@@ -8,10 +8,10 @@
 
 # cpp
 
-drogon-http
+loong-boot
 
-cppcheck /github/drogon-http --enable=information
+cppcheck /github/loong-boot --enable=information
 
-gcc-13 -Q --help=optimizers -Ofast
+gcc-14 -Q --help=optimizers -Ofast
 
 set(COMPILATION_FLAGS "-pipe -w -Ofast -fomit-frame-pointer -march=native -flto -L/usr/local/lib -ljemalloc")

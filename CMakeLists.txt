@@ -6,7 +6,7 @@ SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc@11/11.4.0/bin/g++-11")]]
 SET(CMAKE_C_COMPILER "/opt/homebrew/Cellar/gcc/14.1.0/bin/gcc-14")
 SET(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/gcc/14.1.0/bin/g++-14")
 
-project(drogon-http C CXX)
+project(loong-boot C CXX)
 
 include(CheckIncludeFileCXX)
 
