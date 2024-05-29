@@ -50,7 +50,7 @@ elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use=${CMAKE_SOURCE_DIR}/fprofile")]]
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
-        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -mcpu=native -mtune=native \
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -fomit-frame-pointer -mcpu=native -mtune=native -ftree-vectorize \
         -ftree-vectorize -fopenmp -ftree-parallelize-loops=3 -fipa-pta -freorder-blocks-and-partition \
         -fmerge-all-constants -floop-unroll-and-jam -fno-strict-overflow -fno-tree-loop-distribute-patterns \
         -ffast-math -falign-functions=32 -falign-labels=8 -falign-loops=32 -freorder-blocks -fweb \
@@ -58,7 +58,8 @@ elseif (CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
         -fno-stack-protector -finline-functions -funroll-loops -L/usr/local/lib -DARM_ARCH")
         message("Release mode for ARM:${CMAKE_CXX_FLAGS_RELEASE}")
     elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86")
-        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -flto=auto -ffat-lto-objects \
+        set(CMAKE_CXX_FLAGS_RELEASE "-pipe -w -Ofast -flto=auto \
+        -ftree-vectorize -ffat-lto-objects \
         -funroll-loops -fgcse-after-reload -frename-registers \
         -fipa-cp-clone -fwhole-program -fstrict-aliasing \
         -fstrict-overflow -finline-limit=1000 -freorder-blocks-and-partition \
@@ -156,10 +157,20 @@ add_executable(
 # target_link_libraries(${PROJECT_NAME} PRIVATE drogon)
 #
 # and comment out the following lines
+
+include(FetchContent)
+FetchContent_Declare(
+        glaze
+        GIT_REPOSITORY https://github.com/stephenberry/glaze.git
+        GIT_TAG main
+        GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(glaze)
+
 find_package(Drogon CONFIG REQUIRED)
 find_package(mimalloc 2.1.7 REQUIRED)
 find_package(Boost 1.85.0 REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon Boost::boost mimalloc #[[proto_gen_cxx]])
+target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon Boost::boost glaze::glaze mimalloc #[[proto_gen_cxx]])
 
 # ##############################################################################
 

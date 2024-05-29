@@ -20,6 +20,7 @@
 #include <openssl/buffer.h>
 #include <boost/uuid/uuid_io.hpp>
 #include <execution> // 可能需要此头文件
+#include <glaze/glaze.hpp>
 
 #if defined(__arm__) || defined(__aarch64__)
     #include <arm_neon.h>
@@ -454,6 +455,15 @@ Task<> OpenApi::getValue(const HttpRequestPtr req,
     co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
 }
 
+struct my_struct
+{
+    int i = 1;
+    /*double d = 3.14;*/
+    std::string hello = "c";
+    /*std::array<uint64_t, 3> arr = { 1, 2, 3 };
+    std::map<std::string, int> map{{"one", 1}, {"two", 2}};*/
+};
+
 Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
     //GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -483,12 +493,12 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     std::cout << "name:" << name << std::endl;*/
 
     // jsoncpp
-    Json::Value root;
-    root["id"] = 1;
-    root["name"] = "b";
     const auto t3 = std::chrono::steady_clock::now();
     for (auto i = 0; i < 1000; i++)
     {
+        Json::Value root;
+        root["id"] = 1;
+        root["name"] = "b";
         root.toStyledString();
     }
     const auto t4 = std::chrono::steady_clock::now();
@@ -497,17 +507,17 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     std::cout << "[jsoncpp cost: " << dr_ns1 << " ns]" << std::endl;
 
     // rapidjson
-    rapidjson::StringBuffer buf;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);  // it can word wrap
-    writer.StartObject();
-    writer.Key("id");
-    writer.Int(1);
-    writer.Key("name");
-    writer.String("a");
-    writer.EndObject();
     const auto t5 = std::chrono::steady_clock::now();
     for (auto i = 0; i < 1000; i++)
     {
+        StringBuffer buf;
+        PrettyWriter writer(buf);  // it can word wrap
+        writer.StartObject();
+        writer.Key("id");
+        writer.Int(1);
+        writer.Key("name");
+        writer.String("a");
+        writer.EndObject();
         buf.GetString();
     }
     const auto t6 = std::chrono::steady_clock::now();
@@ -516,12 +526,12 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     std::cout << "[rapidjson cost: " << dr_ns2 << " ns]" << std::endl;
 
     // onlohmannJson
-    json onlohmannJson;
-    onlohmannJson["id"] = 1;
-    onlohmannJson["name"] = "c";
     const auto t7 = std::chrono::steady_clock::now();
     for (auto i = 0; i < 1000; i++)
     {
+        json onlohmannJson;
+        onlohmannJson["id"] = 1;
+        onlohmannJson["name"] = "c";
         onlohmannJson.dump();
     }
     const auto t8 = std::chrono::steady_clock::now();
@@ -529,12 +539,26 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     const double dr_ns3 = std::chrono::duration<double, std::nano>(t8 - t7).count();
     std::cout << "[onlohmannJson cost: " << dr_ns3 << " ns]" << std::endl;
 
+    // glaze
+    const auto t9 = std::chrono::steady_clock::now();
+    std::string buffer{};
+    for (auto i = 0; i < 1000; i++)
+    {
+        my_struct s{};
+        /*std::string glaze = */
+        glz::write_json(s, buffer);
+    }
+    const auto t10 = std::chrono::steady_clock::now();
+    //纳秒级
+    const double dr_ns4 = std::chrono::duration<double, std::nano>(t10 - t9).count();
+    std::cout << "[glaze cost: " << dr_ns4 << " ns]" << std::endl;
+
     std::cout << "---------------xx-----------------" << std::endl;
 
     const auto resp = HttpResponse::newHttpResponse();
     resp->setStatusCode(k200OK);
     resp->setContentTypeCode(drogon::CT_APPLICATION_JSON);
-    resp->setBody(onlohmannJson.dump());
+    resp->setBody(buffer);
     co_return callback(resp);
 }
 
