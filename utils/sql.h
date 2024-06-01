@@ -28,8 +28,8 @@ std::string to_value(const T& data) {
 
 template <size_t N>
 std::string to_value(char const(&data)[N]) {
-    if (data == nullptr) {
-        return "''";  // 处理空指针的情况
+    if (data[0] == '\0') {
+        return "''";  // 处理空字符串的情况
     }
     std::string str("'");
     str.append(data);

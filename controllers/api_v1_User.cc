@@ -6,14 +6,12 @@
 #include <filesystem>
 #include <fstream>
 #include <drogon/drogon.h>
-#include "models/XxlJobInfo.h"
 #include "utils/sql.h"
 #include "service/SbcConvertService.h"
 #include <algorithm>
 #include <execution>
 
 using namespace api::v1;
-using namespace drogon_model::xxl_job;
 using namespace drogon::orm;
 using namespace drogon;
 using namespace sql;
@@ -304,13 +302,6 @@ Task<> User::getInfo(const HttpRequestPtr req,
             data.append(item);
         });
         num_users = count[0][0].as<std::int32_t>();
-
-        auto aa = Criteria(XxlJobInfo::Cols::_id, CompareOperator::LE, 1);
-        std::cout << "XxlJobInfo: " << aa.criteriaString() << std::endl;
-
-        // 构建查询条件
-        auto criteria = Criteria(XxlJobInfo::Cols::_id, CompareOperator::EQ, 1) && Criteria(XxlJobInfo::Cols::_author, CompareOperator::EQ, "aa");
-        std::cout << "criteria sql : " << "SELECT * FROM xxl_job_info WHERE " + criteria.criteriaString() << std::endl;
 
         // 创建SqlBinder对象
         std::string sql = "SELECT * FROM xxl_job_info WHERE id = ? and author = ?";

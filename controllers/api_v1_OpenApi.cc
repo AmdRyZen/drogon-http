@@ -504,7 +504,7 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     const auto t4 = std::chrono::steady_clock::now();
     //纳秒级
     const double dr_ns1 = std::chrono::duration<double, std::nano>(t4 - t3).count();
-    std::cout << "[jsoncpp cost: " << dr_ns1 << " ns]" << std::endl;
+    std::cout << "[jsoncpp cost: " << std::format("{}", dr_ns1) << " ns]" << std::endl;
 
     // rapidjson
     const auto t5 = std::chrono::steady_clock::now();
@@ -523,7 +523,7 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     const auto t6 = std::chrono::steady_clock::now();
     //纳秒级
     const double dr_ns2 = std::chrono::duration<double, std::nano>(t6 - t5).count();
-    std::cout << "[rapidjson cost: " << dr_ns2 << " ns]" << std::endl;
+    std::cout << "[rapidjson cost: " << std::format("{}", dr_ns2) << " ns]" << std::endl;
 
     // onlohmannJson
     const auto t7 = std::chrono::steady_clock::now();
@@ -537,7 +537,7 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     const auto t8 = std::chrono::steady_clock::now();
     //纳秒级
     const double dr_ns3 = std::chrono::duration<double, std::nano>(t8 - t7).count();
-    std::cout << "[onlohmannJson cost: " << dr_ns3 << " ns]" << std::endl;
+    std::cout << "[onlohmannJson cost: " << std::format("{}", dr_ns3) << " ns]" << std::endl;
 
     // glaze
     const auto t9 = std::chrono::steady_clock::now();
@@ -545,13 +545,15 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     for (auto i = 0; i < 1000; i++)
     {
         my_struct s{};
-        /*std::string glaze = */
+        // BEVE
         glz::write_json(s, buffer);
+        // glz::write_binary(s, buffer);
     }
     const auto t10 = std::chrono::steady_clock::now();
     //纳秒级
     const double dr_ns4 = std::chrono::duration<double, std::nano>(t10 - t9).count();
-    std::cout << "[glaze cost: " << dr_ns4 << " ns]" << std::endl;
+    std::cout << "[glaze cost: " <<  std::format("{}", dr_ns4) << " ns]" << std::endl;
+
 
     std::cout << "---------------xx-----------------" << std::endl;
 
@@ -646,7 +648,7 @@ Task<> OpenApi::threadPool(const HttpRequestPtr req, std::function<void(const Ht
     auto const res = foo <=> bar;
     if (res < 0)
         std::cout << "foo 小于 bar" << std::endl;
-    else if (res > 0)
+    else if (res > 0) [[unlikely]]
     {
         [[unreachable]];
         std::cout << "foo 大于 bar" << std::endl;
