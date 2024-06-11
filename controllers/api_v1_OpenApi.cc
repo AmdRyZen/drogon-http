@@ -466,6 +466,7 @@ struct my_struct
 
 Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
+    std::string buffer{};
     //GOOGLE_PROTOBUF_VERIFY_VERSION;
     // protobuf
     /*dto::UserData userData;
@@ -499,7 +500,7 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
         Json::Value root;
         root["id"] = 1;
         root["name"] = "b";
-        root.toStyledString();
+        buffer = root.toStyledString();
     }
     const auto t4 = std::chrono::steady_clock::now();
     //纳秒级
@@ -518,7 +519,7 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
         writer.Key("name");
         writer.String("a");
         writer.EndObject();
-        buf.GetString();
+        buffer = buf.GetString();
     }
     const auto t6 = std::chrono::steady_clock::now();
     //纳秒级
@@ -532,7 +533,7 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
         json onlohmannJson;
         onlohmannJson["id"] = 1;
         onlohmannJson["name"] = "c";
-        onlohmannJson.dump();
+        buffer = onlohmannJson.dump();
     }
     const auto t8 = std::chrono::steady_clock::now();
     //纳秒级
@@ -541,7 +542,6 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
 
     // glaze
     const auto t9 = std::chrono::steady_clock::now();
-    std::string buffer{};
     for (auto i = 0; i < 1000; i++)
     {
         my_struct s{};
@@ -553,7 +553,6 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     //纳秒级
     const double dr_ns4 = std::chrono::duration<double, std::nano>(t10 - t9).count();
     std::cout << "[glaze cost: " <<  std::format("{}", dr_ns4) << " ns]" << std::endl;
-
 
     std::cout << "---------------xx-----------------" << std::endl;
 
