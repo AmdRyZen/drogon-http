@@ -1,6 +1,5 @@
 import ws from 'k6/ws';
 import { check } from 'k6';
-import { sleep } from 'k6';
 
 // k6 run -u 100 ./websocket.js
 export let options = {

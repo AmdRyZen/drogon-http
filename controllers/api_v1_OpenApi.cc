@@ -48,6 +48,66 @@ void printerFunc()
     io.run();
 }
 
+struct Task23 {
+    struct promise_type {
+        Task23 get_return_object() {
+            return Task23{std::coroutine_handle<promise_type>::from_promise(*this)};
+        }
+        static std::suspend_never initial_suspend() { return {}; }
+        static std::suspend_always final_suspend() noexcept { return {}; }
+        static void return_void() {}
+        static void unhandled_exception() { std::terminate(); }
+    };
+
+    std::coroutine_handle<promise_type> coro;
+
+    explicit Task23(std::coroutine_handle<promise_type> h) : coro(h) {}
+    ~Task23() { if (coro) coro.destroy(); }
+
+    void resume() const {
+        if (coro) coro.resume();
+    }
+};
+
+Task23 example(const int n) {
+    for (int i = 0; i < n; ++i) {
+        co_await std::suspend_always{};
+    }
+}
+
+void run_test(const int iterations) {
+    const auto start = std::chrono::high_resolution_clock::now();
+    const auto t = example(iterations);
+    for (int i = 0; i < iterations; ++i) {
+        t.resume();
+    }
+    const auto end = std::chrono::high_resolution_clock::now();
+    const std::chrono::duration<double, std::nano> diff = end - start;
+    const double average_time_ns = diff.count() / iterations;
+    std::cout << std::format("Total Duration: {}", diff.count()) << " ns" << std::endl;
+    std::cout << std::format("Average Time per Switch: {}", average_time_ns) << " ns" << std::endl;
+}
+
+Task<> OpenApi::coroutine(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
+{
+    constexpr int iterations = 10000000;  // 调整为合理的次数，避免程序运行时间过长
+    constexpr int num_threads = 8;
+    std::vector<std::thread> threads;
+
+    for (int i = 0; i < num_threads; ++i) {
+        threads.emplace_back(run_test, iterations);
+    }
+
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    Json::Value ret;
+    ret["msg"] = "ok";
+    ret["code"] = 200;
+    co_return callback(HttpResponse::newHttpJsonResponse(std::move(ret)));
+}
+
 Task<> OpenApi::algorithm(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
     std::random_device rd;
@@ -546,7 +606,7 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
     {
         my_struct s{};
         // BEVE
-        glz::write_json(s, buffer);
+        (void) glz::write_json(s, buffer);
         // glz::write_binary(s, buffer);
     }
     const auto t10 = std::chrono::steady_clock::now();
