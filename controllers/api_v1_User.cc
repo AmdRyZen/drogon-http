@@ -35,11 +35,11 @@ Task<> User::buildSql(const HttpRequestPtr req, std::function<void(const HttpRes
 
         // Insert with named parameters
         InsertModel iP;
-        Param score = ":score";
-        Param name = ":name";
-        Param age = ":age";
-        Param address = ":address";
-        Param create_time = ":create_time";
+        Param score(":score");
+        Param name(":name");
+        Param age(":age");
+        Param address(":address");
+        Param create_time(":create_time");
         iP.insert("score", score)
                 ("name", name)
                 ("age", age)
@@ -80,7 +80,7 @@ Task<> User::buildSql(const HttpRequestPtr req, std::function<void(const HttpRes
 
         // Update with positional parameters
         UpdateModel uP;
-        Param mark = "?";
+        Param mark("?");
         uP.update("user")
             .set("name", mark)
                 ("age", mark)

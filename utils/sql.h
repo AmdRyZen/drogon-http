@@ -12,7 +12,7 @@ class Param
 {
 public:
     explicit Param (std::string param) : _param(std::move(param)) {}
-    Param (const char *param) : _param(param) {}
+    explicit Param (const char *param) : _param(param) {}
 
     std::string operator()() const { return param(); }
     [[nodiscard]] std::string param() const { return _param; }

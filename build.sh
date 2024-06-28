@@ -1,6 +1,6 @@
 #cmake - DCMAKE_BUILD_TYPE = Release - B./ build && cmake-- build build - j4-- config Release
 
-function build_drogon()
+function build_loong()
 {
     #clang - format - style = file - i controllers/*
 
@@ -56,7 +56,7 @@ function build_drogon()
     cd $current_dir || exit
 
     echo "Starting ..."
-    $build_dir/drogon-http
+    $build_dir/loong-boot
     #Ok!
 }
 
@@ -100,9 +100,9 @@ else
 fi
 
 if [ "$1" = "-t" ]; then
-    build_drogon 1
+    build_loong 1
 elif [ "$1" = "-tshared" ]; then
-    build_drogon 2
+    build_loong 2
 else
-    build_drogon 0
+    build_loong 0
 fi
