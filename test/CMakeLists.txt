@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(drogon-http_test CXX)
+project(loong-boot_test CXX)
 
 add_executable(${PROJECT_NAME} test_main.cc)
 

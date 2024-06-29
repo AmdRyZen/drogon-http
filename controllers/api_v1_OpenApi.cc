@@ -48,20 +48,32 @@ void printerFunc()
     io.run();
 }
 
-struct Task23 {
-    struct promise_type {
-        Task23 get_return_object() {
+struct Task23
+{
+    struct promise_type
+    {
+        constexpr Task23 get_return_object()
+        {
             return Task23{std::coroutine_handle<promise_type>::from_promise(*this)};
         }
-        static std::suspend_never initial_suspend() { return {}; }
-        static std::suspend_always final_suspend() noexcept { return {}; }
+        static std::suspend_never initial_suspend()
+        {
+            return {};
+        }
+        static std::suspend_always final_suspend() noexcept
+        {
+            return {};
+        }
         static void return_void() {}
-        static void unhandled_exception() { std::terminate(); }
+        static void unhandled_exception()
+        {
+            std::terminate();
+        }
     };
 
     std::coroutine_handle<promise_type> coro;
 
-    explicit Task23(std::coroutine_handle<promise_type> h) : coro(h) {}
+     explicit Task23(std::coroutine_handle<promise_type> const h) : coro(h) {}
     ~Task23() { if (coro) coro.destroy(); }
 
     void resume() const {

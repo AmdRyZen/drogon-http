@@ -7,7 +7,7 @@ DROGON_TEST(BasicTest)
     // Add your tests here
 }
 
-int main(int argc, char** argv)
+int main(const int argc, char** argv)
 {
     using namespace drogon;
 
@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 
     // The future is only satisfied after the event loop started
     f1.get();
-    int status = test::run(argc, argv);
+    const int status = test::run(argc, argv);
 
     // Ask the event loop to shutdown and wait
     app().getLoop()->queueInLoop([]() {
