@@ -36,7 +36,7 @@ class TrieNode
 struct SensitiveWord
 {
     std::wstring word;
-    int startIndex;
+    size_t startIndex;
     int len;
 
     friend bool operator<(struct SensitiveWord const& a, struct SensitiveWord const& b)
@@ -61,13 +61,13 @@ class TrieService
     static void loadFromFile(const std::string& file_name);
 
     //从内存加载敏感词列表
-    [[gnu::always_inline]] inline static void loadFromMemory(std::unordered_set<std::wstring>& words);
+    [[gnu::always_inline]] inline static void loadFromMemory(const std::unordered_set<std::wstring>& words);
 
     //加载停顿词从指定的文件
     static void loadStopWordFromFile(const std::string& file_name);
 
     //从内存加载停顿词
-    [[gnu::always_inline]] inline static void loadStopWordFromMemory(std::unordered_set<wchar_t>& words);
+    [[gnu::always_inline]] inline static void loadStopWordFromMemory(const std::unordered_set<wchar_t>& words);
 
     //brief Inserts a word into the trie
     [[gnu::always_inline]] inline static void insert(const std::wstring& word);
@@ -79,13 +79,13 @@ class TrieService
     [[gnu::always_inline]] inline static bool startsWith(const std::wstring& prefix);
 
     //过滤敏感词并返回敏感词命中位置和信息
-    std::set<SensitiveWord> getSensitive(const std::wstring& word);
+    static std::set<SensitiveWord> getSensitive(const std::wstring& word);
 
     // 替换敏感词为*
-    std::wstring replaceSensitive(const std::wstring& word);
+    static std::wstring replaceSensitive(const std::wstring& word);
 
   private:
-    [[gnu::always_inline]] inline static int getSensitiveLength(std::wstring word, size_t startIndex);
+    [[gnu::always_inline]] inline static int getSensitiveLength(const std::wstring& word, size_t startIndex);
 
     inline static TrieNode* root_;
     inline static std::unordered_set<uint16_t /*unicode*/> stop_words_;

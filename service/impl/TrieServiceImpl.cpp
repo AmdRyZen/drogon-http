@@ -87,10 +87,10 @@ std::set<SensitiveWord> TrieService::getSensitive(const std::wstring& word)
     std::set<SensitiveWord> sensitiveSet;
     for (size_t i = 0; i < word.length(); ++i)
     {
-        int wordLen = getSensitiveLength(word, i);
+        const int wordLen = getSensitiveLength(word, i);
         if (wordLen > 0)
         {
-            std::wstring sensitiveWord = word.substr(i, wordLen);
+            const std::wstring sensitiveWord = word.substr(i, wordLen);
             SensitiveWord wordObj;
             wordObj.word = sensitiveWord;
             wordObj.startIndex = i;
@@ -103,7 +103,7 @@ std::set<SensitiveWord> TrieService::getSensitive(const std::wstring& word)
     return sensitiveSet;
 }
 
-int TrieService::getSensitiveLength(std::wstring word, size_t startIndex)
+int TrieService::getSensitiveLength(const std::wstring& word, const size_t startIndex)
 {
     TrieNode* p1 = root_;
     int wordLen = 0;
@@ -147,11 +147,11 @@ std::wstring TrieService::replaceSensitive(const std::wstring& word)
 {
     std::set<SensitiveWord> words = getSensitive(word);
     std::wstring ret = word;
-    for (auto& item : words)
+    for (const auto& [word, startIndex, len] : words)
     {
-        for (int i = item.startIndex; i < (item.startIndex + item.len); ++i)
+        for (size_t i = startIndex; i < startIndex + len; ++i)
         {
-            ret[i] = L'👀';
+            ret[i] = L''; // 确保编译器和环境正确处理宽字符
         }
     }
     return ret;
@@ -193,7 +193,7 @@ void TrieService::loadStopWordFromFile(const std::string& file_name)
     //std::cout << "load " << count << " stop words" << std::endl;
 }
 
-void TrieService::loadStopWordFromMemory(std::unordered_set<wchar_t>& words)
+void TrieService::loadStopWordFromMemory(const std::unordered_set<wchar_t>& words)
 {
     for (auto& str : words)
     {
@@ -202,7 +202,7 @@ void TrieService::loadStopWordFromMemory(std::unordered_set<wchar_t>& words)
     }
 }
 
-void TrieService::loadFromMemory(std::unordered_set<std::wstring>& words)
+void TrieService::loadFromMemory(const std::unordered_set<std::wstring>& words)
 {
     for (auto& item : words)
     {

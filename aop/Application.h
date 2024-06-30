@@ -23,7 +23,7 @@ namespace App {
 constexpr char drogon[] = "\n"
                       "                       .::::.\n"
                       "                     .::::::::.\n"
-                      "                    :::::::::::  HELLO DROGON\n"
+                      "                    :::::::::::  HELLO LOONG\n"
                       "                ..:::::::::::'\n"
                       "              '::::::::::::'\n"
                       "                .::::::::::\n"
