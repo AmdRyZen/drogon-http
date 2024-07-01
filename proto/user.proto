@@ -3,6 +3,7 @@ syntax = "proto3";
 package dto;
 
 message UserData {
-  int64 id = 1;
+  string id = 1;
   string name = 2;
+  string message = 3;
 }

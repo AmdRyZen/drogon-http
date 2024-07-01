@@ -2,7 +2,7 @@
 #include "utils/redisUtils.h"
 #include "boost/format.hpp"
 #include "rapidjson/document.h"
-#include "rapidjson/prettywriter.h"
+#include "user.pb.h"
 
 using namespace rapidjson;
 
@@ -61,7 +61,7 @@ void ChatWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                 {
                     try
                     {
-                        std::string_view data;
+                        std::string data;
                         if (!command.empty())
                         {
                             data = co_await redisUtils::getCoroRedisValue(command);
@@ -69,11 +69,20 @@ void ChatWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
 
                         if (!action.empty())
                         {
-                           if (action == "message")
+                            if (action == "message")
                             {
                                 // 发送消息到聊天室
-                               const std::string formattedMessage = std::format(R"({{"sender": "{}", "message": "{} ====> {}}})", id, msgContent, data);
-                               chatRooms_.publish(chatRoomName, formattedMessage);
+                                const std::string formattedMessage = std::format(R"({{"sender": "{}", "message": "{} ====> {}}})", id, msgContent, data);
+                                // protobuf
+                                std::string buffer{};
+                                dto::UserData userData;
+                                userData.set_id(std::to_string(id));
+                                userData.set_name(action);
+                                userData.set_message(msgContent);
+                                userData.SerializeToString(&buffer);
+                                // 清理 Protobuf 库
+                                google::protobuf::ShutdownProtobufLibrary();
+                                chatRooms_.publish(chatRoomName, buffer);
                             }
                             // 其他操作...
                         }

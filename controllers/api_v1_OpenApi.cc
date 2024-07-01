@@ -21,6 +21,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <execution> // 可能需要此头文件
 #include <glaze/glaze.hpp>
+#include "user.pb.h"
 
 #if defined(__arm__) || defined(__aarch64__)
     #include <arm_neon.h>
@@ -539,15 +540,18 @@ struct my_struct
 Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const HttpResponsePtr&)> callback)
 {
     std::string buffer{};
-    //GOOGLE_PROTOBUF_VERIFY_VERSION;
-    // protobuf
-    /*dto::UserData userData;
-    userData.set_id(1);
-    userData.set_name("name");
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-    std::string buff{};
     auto t1 = std::chrono::steady_clock::now();
-    userData.SerializeToString(&buff);
+    for (auto i = 0; i < 1000; i++)
+    {
+        // protobuf
+        dto::UserData userData;
+        userData.set_id("999");
+        userData.set_name("protobuf");
+        userData.set_message("message");
+        userData.SerializeToString(&buffer);
+    }
     auto t2 = std::chrono::steady_clock::now();
     //纳秒级
     double dr_ns = std::chrono::duration<double, std::nano>(t2 - t1).count();
@@ -558,12 +562,14 @@ Task<> OpenApi::fastJson(const HttpRequestPtr req, std::function<void(const Http
 
     //------------------解析----------------------
     dto::UserData rsp2{};
-    if (!rsp2.ParseFromString(buff))
+    if (!rsp2.ParseFromString(buffer))
     {
         std::cout << "parse error\n";
     }
     auto name = rsp2.name();
-    std::cout << "name:" << name << std::endl;*/
+    // 清理 Protobuf 库
+    google::protobuf::ShutdownProtobufLibrary();
+    std::cout << "name:" << name << std::endl;
 
     // jsoncpp
     const auto t3 = std::chrono::steady_clock::now();
