@@ -20,4 +20,19 @@ public:
 
 private:
     PubSubService<std::string> chatRooms_;
+
+    struct chatMessageDto
+    {
+        std::string key;
+        std::string action;
+        std::string msgContent;
+    };
+
+    struct chatMessageVo
+    {
+        int code = -1;
+        uint64_t id;
+        std::string name;
+        std::string message;
+    };
 };

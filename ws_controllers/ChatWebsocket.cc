@@ -1,10 +1,7 @@
 #include "ChatWebsocket.h"
 #include "utils/redisUtils.h"
-#include "boost/format.hpp"
-#include "rapidjson/document.h"
 #include "user.pb.h"
-
-using namespace rapidjson;
+#include <glaze/glaze.hpp>
 
 struct Subscriber
 {
@@ -25,31 +22,6 @@ void ChatWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
 
         if (!message.empty())
         {
-            Document document;
-            if (document.Parse(message.c_str()).HasParseError())
-            {
-                return;
-            }
-
-            if (document.IsNull())
-            {
-                std::cerr << "JSON is empty!" << std::endl;
-                return;
-            }
-
-            std::string command;
-            if (document.HasMember("key") && document["key"].IsString())
-            {
-                command = std::format("get {}", document["key"].GetString());
-            }
-
-            std::string action;
-            if (document.HasMember("action") && document["action"].IsString())
-            {
-                action = document["action"].GetString();
-            }
-            std::string msgContent = document["msgContent"].GetString();
-
             // 在处理用户退出时检查连接状态
             if (!wsConnPtr->disconnected())
             {
@@ -57,31 +29,51 @@ void ChatWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                 const auto& [chatRoomName, id] = subscriber;
 
                 //auto sharedThis = shared_from_this();
-                async_run([action, msgContent, command, chatRoomName, id, this]() -> Task<>
+                async_run([wsConnPtr, message, chatRoomName, id, this]() -> Task<>
                 {
                     try
                     {
-                        std::string data;
-                        if (!command.empty())
+                        chatMessageDto messageDto{};
+                        chatMessageVo errMessageVo{};
+
+                        if (glz::read_json(messageDto, message))
                         {
-                            data = co_await redisUtils::getCoroRedisValue(command);
+                            std::string buffer{};
+                            (void) glz::write_json(errMessageVo, buffer);
+                            wsConnPtr->send(buffer, WebSocketMessageType::Text);
+                            co_return;
                         }
 
-                        if (!action.empty())
+                        std::string data{};
+                        if (!messageDto.key.empty())
                         {
-                            if (action == "message")
+                            data = co_await redisUtils::getCoroRedisValue(std::format("get {}",  messageDto.key));
+                        }
+
+                        if (!messageDto.action.empty())
+                        {
+                            if (messageDto.action == "message")
                             {
                                 // 发送消息到聊天室
-                                const std::string formattedMessage = std::format(R"({{"sender": "{}", "message": "{} ====> {}}})", id, msgContent, data);
-                                // protobuf
+                                const std::string formattedMessage = std::format(R"({{"sender": "{}", "message": "{} ====> {}}})", id, messageDto.msgContent, data);
                                 std::string buffer{};
-                                dto::UserData userData;
+
+                                // protobuf
+                                /*dto::UserData userData;
                                 userData.set_id(std::to_string(id));
                                 userData.set_name(action);
                                 userData.set_message(msgContent);
                                 userData.SerializeToString(&buffer);
                                 // 清理 Protobuf 库
-                                google::protobuf::ShutdownProtobufLibrary();
+                                google::protobuf::ShutdownProtobufLibrary();*/
+
+                                chatMessageVo messageVo{};
+                                messageVo.code = 200;
+                                messageVo.id = id;
+                                messageVo.name = data;
+                                messageVo.message = messageDto.msgContent;
+                                // BEVE
+                                (void) glz::write_json(messageVo, buffer);
                                 chatRooms_.publish(chatRoomName, buffer);
                             }
                             // 其他操作...
