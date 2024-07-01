@@ -22,6 +22,17 @@ void ChatWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
 
         if (!message.empty())
         {
+            chatMessageDto messageDto{};
+            chatMessageVo errMessageVo{};
+
+            if (glz::read_json(messageDto, message))
+            {
+                std::string buffer{};
+                (void) glz::write_json(errMessageVo, buffer);
+                wsConnPtr->send(buffer, WebSocketMessageType::Text);
+                return;
+            }
+
             // 在处理用户退出时检查连接状态
             if (!wsConnPtr->disconnected())
             {
@@ -29,21 +40,10 @@ void ChatWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                 const auto& [chatRoomName, id] = subscriber;
 
                 //auto sharedThis = shared_from_this();
-                async_run([wsConnPtr, message, chatRoomName, id, this]() -> Task<>
+                async_run([messageDto, chatRoomName, id, this]() -> Task<>
                 {
                     try
                     {
-                        chatMessageDto messageDto{};
-                        chatMessageVo errMessageVo{};
-
-                        if (glz::read_json(messageDto, message))
-                        {
-                            std::string buffer{};
-                            (void) glz::write_json(errMessageVo, buffer);
-                            wsConnPtr->send(buffer, WebSocketMessageType::Text);
-                            co_return;
-                        }
-
                         std::string data{};
                         if (!messageDto.key.empty())
                         {
@@ -55,9 +55,7 @@ void ChatWebsocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, st
                             if (messageDto.action == "message")
                             {
                                 // 发送消息到聊天室
-                                const std::string formattedMessage = std::format(R"({{"sender": "{}", "message": "{} ====> {}}})", id, messageDto.msgContent, data);
                                 std::string buffer{};
-
                                 // protobuf
                                 /*dto::UserData userData;
                                 userData.set_id(std::to_string(id));

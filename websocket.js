@@ -12,7 +12,7 @@ export default function () {
     const params = { tags: { my_tag: 'websocket' } };
 
     const message = JSON.stringify({
-        "key1": "aa",
+        "key": "aa",
         "action": "message",
         "msgContent": "hahahahh"
         /* "Name": "Liming",
